@@ -19,4 +19,13 @@ ecbuild:
   remote: git@github.com:GEOS-ESM/ecbuild.git
   tag: geos/v1.3.0
 
+AQcGAN:
+  local: ./src/AQcGAN
+  remote: git@github.com:JHUAPL-ClearSKAIs/AQcGAN
+  develop: main
+
+NASA-AQcGAN:
+  local: /src/NASA-AQcGAN
+  remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
+  develop: main
 
