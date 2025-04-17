@@ -4,19 +4,19 @@ GEOSAQcGAN:
 
 env:
   local: ./env@
-  remote: GEOS-ESM/ESMA_env.git
+  remote: git@github.com:GEOS-ESM/ESMA_env.git
   tag: v4.8.2
   develop: main
 
 cmake:
   local: ./cmake@
-  remote: GEOS-ESM/ESMA_cmake.git
+  remote: git@github.com:GEOS-ESM/ESMA_cmake.git
   tag: v3.28.0
   develop: develop
 
 ecbuild:
   local: ./cmake@/ecbuild@
-  remote: GEOS-ESM/ecbuild.git
+  remote: git@github.com:GEOS-ESM/ecbuild.git
   tag: geos/v1.3.0
 
 
