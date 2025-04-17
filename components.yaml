@@ -20,12 +20,14 @@ ecbuild:
   tag: geos/v1.3.0
 
 AQcGAN:
-  local: ./src/AQcGAN
+  local: ./src/AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/AQcGAN
   develop: main
+  branch: main
 
 NASA-AQcGAN:
-  local: /src/NASA-AQcGAN
+  local: ./src/NASA-AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
   develop: main
+  branch: main
 
