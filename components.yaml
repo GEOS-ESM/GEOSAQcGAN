@@ -1,6 +1,6 @@
 GEOSAQcGAN:
   fixture: true
-  develop: main
+  develop: develop
 
 env:
   local: ./env@
