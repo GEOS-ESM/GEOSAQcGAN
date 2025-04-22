@@ -5,7 +5,7 @@ GEOSAQcGAN:
 env:
   local: ./env@
   remote: ../ESMA_env.git
-  tag: v4.36.0
+  tag: v4.36.0+py3.13
   develop: main
 
 cmake:
