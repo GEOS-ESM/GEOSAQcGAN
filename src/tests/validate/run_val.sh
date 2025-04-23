@@ -5,6 +5,7 @@
 
 setenv HOME_DIR /discover/nobackup/pcastell/workspace/GEOSAQcGAN/GEOSAQcGAN/ 
 setenv PYTHONPATH ${HOME_DIR}/src/AQcGAN@/src
+set BIN = ${HOME_DIR}/install/bin/
 source $HOME_DIR/env@/g5_modules
 
 
@@ -16,7 +17,7 @@ set member=1
 set suffix=my_test
 set root_dir=/discover/nobackup/projects/gmao/aist-cf/merged_aqcgan_inputs
 
-python3 -i scripts/merge_geos_cf_ens_data.py $perturb $data_type $member -suffix $suffix --data_dir $root_dir
+python3 -i ${BIN}/NASA_AQcGAN/merge_geos_cf_ens_data.py $perturb $data_type $member -suffix $suffix --data_dir $root_dir
 
 # $root_dir contains a GEOS-CF dataset of 40 time steps (5 days) copied over from 
 # /css/gmao/geos-cf-dev/pub/AIST21_0024/TrainingData_Ensembles/c90_v0
@@ -36,7 +37,7 @@ set NORM_STATS_FILENAME="${EXP_DIR}/norm_stats.pkl"
 mkdir -p ${EXP_DIR}
 ln -s norm_stats.pkl ${EXP_DIR}
 
-python3 -i scripts/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members 1 --test_members=1 --val_members=1
+python3 -i ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members 1 --test_members=1 --val_members=1
 
 # The code preprocess_geos_cf_ens.py reads in all the merged files from STEP 1 and normalizes the data.
 # The script takes as input indices of the members that it should use for training, testing, and validation.
@@ -67,7 +68,7 @@ set VERTICAL_LEVEL=72
 set SPLIT="val"
 set N_PASSES=1
 
-python3 -im inference.create_ensemble_predictions $CONFIG_FILE $CHKPT_IDX $DATA_DIR --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL --split $SPLIT --is_pred
+#python3 -im inference.create_ensemble_predictions $CONFIG_FILE $CHKPT_IDX $DATA_DIR --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL --split $SPLIT --is_pred
 
 # This final step creates a file in exp/test_one_mem called val_ens_pred_stats_days1_level72.npz
 # This contains two arrays - one for the mean, one for the standard deviation of the ensembles (in this case it's just one ensemble member, so the std is just all NAN). In this case it has shape [24, 4, 8, 181, 360]
