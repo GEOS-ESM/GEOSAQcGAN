@@ -4,19 +4,20 @@
 
 # Install AQcGAN package
 # ---------------------
-  file(GLOB files AQcGAN@/src/*)
-  install(FILES ${files} DESTINATION lib/Python/AQcGAN)
+  install(DIRECTORY AQcGAN@/src/AQcGAN DESTINATION lib/Python USE_SOURCE_PERMISSIONS)
 
+# Install NASA-AQcGAN package
+# --------------------
+  install(DIRECTORY NASA-AQcGAN@/inference DESTINATION lib/Python/nasa_AQcGAN USE_SOURCE_PERMISSIONS)
+  install(DIRECTORY NASA-AQcGAN@/scripts DESTINATION lib/Python/nasa_AQcGAN USE_SOURCE_PERMISSIONS)
 
+set (PYSCRIPTS
+    dataset.py
+    main_ens_ic.py
+    train_ens_ic.py
+    )
 
-#esma_check_if_debug()
-
-#set (subdirectories   
-#  AQcGAN    NASA-AQcGAN
-#  )
-#foreach (subdir ${subdirectories})
-#  esma_add_subdirectory (${subdir})
-#endforeach()
-
-
-    
+install (
+    FILES ${PYFILES} 
+    DESTINATION lib/Python/nasa_AQcGAN
+    )
