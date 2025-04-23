@@ -35,13 +35,13 @@ module load GEOSenv
 ```
 which obtains the latest `git`, `CMake`, etc. modules needed to build.
 
-#### Obtain the Model
+### Obtain the Model
 
 ```
 mepo clone git@github.com:GEOS-ESM/GEOSAQcGAN.git
 ```
 
-##### Slow clones
+#### Slow clones
 
 If you notice your clone is taking a while, we recommend running:
 
@@ -51,9 +51,9 @@ mepo config set clone.partial blobless
 
 This is a one-time command that tells mepo to use blobless clones for all future clones. Blobless clones are much faster than the default clone method, especially for repositories with a large history like MAPL.
 
-#### Build the Model
+### Build the Model
 
-##### Load Compiler, MPI Stack, and Baselibs
+#### Load Compiler, MPI Stack, and Baselibs
 On tcsh:
 ```
 source env@/g5_modules
@@ -62,7 +62,7 @@ or on bash:
 ```
 source env@/g5_modules.sh
 ```
-##### Run CMake
+#### Run CMake
 CMake generates the Makefiles needed to build the model.
 ```
 
@@ -81,14 +81,14 @@ To build with debugging flags add:
 ```
 to the cmake line.
 
-##### Create Build Directory
+#### Create Build Directory
 We currently do not allow in-source builds of GEOSgcm. So we must make a directory:
 ```
 cd build
 ```
 The advantages of this is that you can build both a Debug and Release version with the same clone if desired.
 
-##### Build and Install with Make
+#### Build and Install with Make
 ```
 make -j6 install
 ```
