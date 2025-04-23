@@ -10,4 +10,4 @@
 
 # Python executables
 # ------------------  
-  install(PROGRAMS forecast.py DESTINATION bin)
+#  install(PROGRAMS forecast.py DESTINATION bin)
