@@ -36,7 +36,7 @@ set NORM_STATS_FILENAME="${EXP_DIR}/norm_stats.pkl"
 mkdir -p ${EXP_DIR}
 ln -s ${PWD}/norm_stats.pkl ./${EXP_DIR}
 
-python3 ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members=1 --test_members=1 --val_members=1
+python3 ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members=2 --test_members=1 --val_members=1
 
 # The code preprocess_geos_cf_ens.py reads in all the merged files from STEP 1 and normalizes the data.
 # The script takes as input indices of the members that it should use for training, testing, and validation.
@@ -48,6 +48,7 @@ python3 ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_f
 # Inside these directories are numpy files called $member_number.npy and $member_number_time.npy.  
 # There's a decision tree inside preprocess_geos_cf_ens.py that makes it so only "train" and "val" 
 # preprocessed data is made when the same member number is used for all three.
+# So I have to made train_members equal to 2 to create a val directory.
 
 
 # STEP 3: Run the NASA-AQcGAN Model in inference mode
