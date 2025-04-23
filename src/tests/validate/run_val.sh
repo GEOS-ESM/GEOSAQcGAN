@@ -17,7 +17,7 @@ set member=1
 set suffix=my_test
 set root_dir=/discover/nobackup/projects/gmao/aist-cf/merged_aqcgan_inputs
 
-python3 -i ${BIN}/NASA_AQcGAN/merge_geos_cf_ens_data.py $perturb $data_type $member -suffix $suffix --data_dir $root_dir
+python3 ${BIN}/NASA_AQcGAN/merge_geos_cf_ens_data.py $perturb $data_type $member -suffix $suffix --data_dir $root_dir
 
 # $root_dir contains a GEOS-CF dataset of 40 time steps (5 days) copied over from 
 # /css/gmao/geos-cf-dev/pub/AIST21_0024/TrainingData_Ensembles/c90_v0
