@@ -4,7 +4,7 @@
 #
 
 setenv HOME_DIR /discover/nobackup/pcastell/workspace/GEOSAQcGAN/GEOSAQcGAN/ 
-setenv PYTHONPATH ${HOME_DIR}/src/AQcGAN@/src
+setenv PYTHONPATH ${HOME_DIR}/install/lib/Python
 set BIN = ${HOME_DIR}/install/bin/
 source $HOME_DIR/env@/g5_modules
 
@@ -54,8 +54,8 @@ python3 ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_f
 # STEP 3: Run the NASA-AQcGAN Model in inference mode
 
 mkdir -p exp/${exp_name}
-ln -s train_metrics.pkl exp/${exp_name}
-ln -s val_metrics.pkl exp/${exp_name}
+ln -s ${PWD}/train_metrics.pkl ./exp/${exp_name}
+ln -s ${PWD}/val_metrics.pkl ./exp/${exp_name}
 
 set MODEL_DIR=/discover/nobackup/projects/gmao/aist-cf/merged_aqcgan_inputs/checkpoint/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/150
 ln -s ${MODEL_DIR} exp/${exp_name}
@@ -68,7 +68,7 @@ set VERTICAL_LEVEL=72
 set SPLIT="val"
 set N_PASSES=1
 
-#python3 -im inference.create_ensemble_predictions $CONFIG_FILE $CHKPT_IDX $DATA_DIR --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL --split $SPLIT --is_pred
+python3 -im NASA_AQcGAN.inference.create_ensemble_predictions $CONFIG_FILE $CHKPT_IDX $DATA_DIR --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL --split $SPLIT --is_pred
 
 # This final step creates a file in exp/test_one_mem called val_ens_pred_stats_days1_level72.npz
 # This contains two arrays - one for the mean, one for the standard deviation of the ensembles (in this case it's just one ensemble member, so the std is just all NAN). In this case it has shape [24, 4, 8, 181, 360]
