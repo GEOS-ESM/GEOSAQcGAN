@@ -31,13 +31,12 @@ python3 ${BIN}/NASA_AQcGAN/merge_geos_cf_ens_data.py $perturb $data_type $member
 set exp_name=test_one_mem
 set EXP_DIR=data/geos_cf/${exp_name}
 set data_file=gcc_my_test
-set member=1
 set NORM_STATS_FILENAME="${EXP_DIR}/norm_stats.pkl"
 
 mkdir -p ${EXP_DIR}
-ln -s norm_stats.pkl ${EXP_DIR}
+ln -s ${PWD}/norm_stats.pkl ./${EXP_DIR}
 
-python3 -i ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members 1 --test_members=1 --val_members=1
+python3 ${BIN}/NASA_AQcGAN/preprocess_geos_cf_ens.py $perturb $data_type $data_file $NORM_STATS_FILENAME $member $EXP_DIR --root_dir $root_dir --train_members=1 --test_members=1 --val_members=1
 
 # The code preprocess_geos_cf_ens.py reads in all the merged files from STEP 1 and normalizes the data.
 # The script takes as input indices of the members that it should use for training, testing, and validation.
