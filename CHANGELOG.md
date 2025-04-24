@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- tests directory to run a single inference test
+- cmake rules to install JHU repos
 ### Changed
 
 ### Fixed

@@ -15,3 +15,20 @@ install*
 
 # If you build with spack libraries, you can get spack log files
 spack*.log
+
+*~
+/cmake/
+/@cmake/
+/cmake@/
+/env/
+/@env/
+/env@/
+/BUILD/
+/build*/
+/install*/
+/.mepo/
+parallel_build.o*
+/src/Shared/AQcGAN@
+/src/Shared/@AQcGAN
+/src/Shared/NASA-AQcGAN@
+/src/Shared/@NASA-AQcGAN
