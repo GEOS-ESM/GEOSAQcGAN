@@ -57,6 +57,7 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
 
     # Loop over all the collections to extract time series fields
     for key in params["collection"]:
+        print(f"... Read data files for collection: {key}")
         # Full path to the location of the data files
         data_dir = f'{root_dir}/{exp_name}/holding/{key}'
 
@@ -78,6 +79,8 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
                 level_id = level_id)
 
         list_ds.append(ds)
+        print(f"... Done with collection: {key}")
+        print()
 
     # Merge the individual Datasets into a unique one
     new_ds = xr.merge(list_ds)
@@ -148,9 +151,7 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
 
     # Obtain the list of files to read
     list_files = get_list_files(data_dir, file_prefix, beg_date, end_date)
-    print()
-    print(f"Number of files: \n {len(list_files)}")
-    print()
+    print(f"   ... {len(list_files)} files to read.")
 
     date_list = list()
     time_list = list()

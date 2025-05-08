@@ -7,6 +7,7 @@
 # -----------------------
   file(GLOB py_files geosaqcgan/*.py)
   install(FILES ${py_files} DESTINATION lib/Python/geosaqcgan)
+  install(DIRECTORY geosaqcgan/configs DESTINATION lib/Python/geosaqcgan)
 
 # Python executables
 # ------------------  
