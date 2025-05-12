@@ -11,8 +11,8 @@ end_date: 20230102
 # data_dir = Full path to the location of the GEOS CF files
 # file_prefix = Prefix of individual file names
 # fields = Field names you want to read in the files
-# fields_map = New field names that will be used by AQcGAN. 
-#              There should be a one-to-one correspondance 
+# fields_map = New field names that will be used by AQcGAN.
+#              There should be a one-to-one correspondance
 #              with the previous list.
 # level_id = Level index of interest.
 #            If dealing with surface fields, set it to -1.
