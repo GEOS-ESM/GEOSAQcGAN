@@ -1,15 +1,8 @@
 #!/usr/bin/env python
 """
-This script is meant to gather GCC input data files.
-It reads the YAML file settings_input_dir.yaml and
-creates a directory structure containing requested files
-(over the provided date range). It is important to note
-that we do not copy files but use symbolic links.
-
-To run this script, first edit the settings_input_dir.yaml file
-to provide the full path to your local input dir (my_input_dir),
-select the date range (beg_date and end_date) and provide the
-list of indices of interest (list_member_ids)
+This script is meant to gather GEOS CF input data files.
+It reads the YAML file containing the collections of interest.
+In each collection, we list the fields we want to read and save.
 """
 
 import yaml
@@ -48,7 +41,6 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
         sys.exit()
 
     exp_name = params["exp_name"]
-    root_dir = params["root_dir"]
     beg_date = params["beg_date"]
     end_date = params["end_date"]
 
@@ -58,11 +50,11 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
     # Loop over all the collections to extract time series fields
     for key in params["collection"]:
         print(f"... Read data files for collection: {key}")
-        # Full path to the location of the data files
-        data_dir = f'{root_dir}/{exp_name}/holding/{key}'
 
         # Get parameters associated with collection
         col_params = params['collection'][key]
+
+        # Check if level_id is provided
         if "level_id" in col_params:
             level_id = col_params["level_id"]
         else:
@@ -70,7 +62,7 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
 
         # Gather data for the collection
         ds = read_geos_cf_collection(
-                data_dir = data_dir, 
+                data_dir = col_params["data_dir"], 
                 file_prefix = col_params["file_prefix"], 
                 fields = col_params["fields"],
                 beg_date = beg_date, 
