@@ -41,9 +41,6 @@ if __name__ == "__main__":
     parser.add_argument("config_filepath", type=str, help="Full path to the experiment config file")
     parser.add_argument("chkpt_idx", type=int, help="Model checkpoint.")
     parser.add_argument("meta_filepath", type=str, help="Full path to the Pickle file containing experiment data.")
-    parser.add_argument("--split", type=str, choices=["train", "val", "test"], help="Training, val, or test split")
-    parser.add_argument("--is_pred", action="store_true", help="Flag to get model predictions.")
-    parser.add_argument("--is_baseline", action="store_true", help="Flag to get baseline (persistence) predictions.")
     parser.add_argument("--n_passes", "-n", type=int, default=1, help="Number of forward passes to run.")
     parser.add_argument("--vertical_level", type=int, default=72, help="Vertical level to evaluate on")
     args = parser.parse_args()
@@ -58,14 +55,9 @@ if __name__ == "__main__":
     if not meta_data:
         sys.exit()
 
-    if args.split == "train":
-        dataset = trainer.train_data
-    elif args.split == "val":
-        dataset = trainer.val_data
-    elif args.split == "test":
-        dataset = trainer.test_data
-    else:
-        raise ValueError("split must be train, val, or test.")
+    # get dataset
+    dataset = trainer.val_data
+
     old_feats = dataset.feat_names
     old_targets = dataset.target_names
     new_feats = {}
@@ -100,11 +92,7 @@ if __name__ == "__main__":
     # Get normalization stats
     mu, sigma = get_norm_stats(dataset.target_names[args.vertical_level], meta_data)
 
-    if args.is_pred:
-        save_file = f"{args.split}_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz" if not args.is_baseline \
-                else f"{args.split}_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}_baseline.npz"
-    else:
-        save_file = f"{args.split}_ens_stats_days{args.n_passes}_level{args.vertical_level}.npz"
+    save_file = f"fc_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz"
 
     if os.path.exists(trainer.chkpt_dir / save_file):
         print(f'{save_file} already exists! Skipping')
@@ -117,19 +105,10 @@ if __name__ == "__main__":
     ens_mean_inv, ens_std_inv = inv_mean_spread(ens_mean.numpy(), ens_var.numpy(), mu, sigma)
 
     # save "predictions"
-    if args.is_pred:
-        save_file = f"{args.split}_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz" if not args.is_baseline \
-                else f"{args.split}_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}_baseline.npz"
-        save_dict = {
-            f"ens_mean_pred_{args.split}_inv": ens_mean_inv,
-            f"ens_std_pred_{args.split}_inv": ens_std_inv,
-        }
-    else:
-        save_file = f"{args.split}_ens_stats_days{args.n_passes}_level{args.vertical_level}.npz"
-        save_dict = {
-            f"ens_mean_{args.split}_inv": ens_mean_inv,
-            f"ens_std_{args.split}_inv": ens_std_inv,
-        }
+    save_dict = {
+        f"ens_mean_pred_{args.split}_inv": ens_mean_inv,
+        f"ens_std_pred_{args.split}_inv": ens_std_inv,
+    }
     with open(trainer.chkpt_dir / save_file, "wb") as fid:
         np.savez(fid, **save_dict)
 
