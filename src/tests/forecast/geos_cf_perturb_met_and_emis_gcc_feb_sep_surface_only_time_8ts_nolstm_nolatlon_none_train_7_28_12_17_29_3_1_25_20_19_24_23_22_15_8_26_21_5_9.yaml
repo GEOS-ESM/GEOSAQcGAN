@@ -1,0 +1,98 @@
+---
+aqcgan:
+  n_t: 8
+  out_t: 8
+  h: 181
+  w: 360
+  in_channels: 23
+  out_channels: 4
+  alpha: 0.2
+  p_dropout: 0.2
+  use_half: false
+  debug: false
+  use_lstm: false
+
+data:
+  class: Large
+  feat_names:
+    72:
+      - CLDTT
+      - EMIS_CO
+      - EMIS_NO
+      - EMIS_NO2
+      - Met_OPTD_72
+      - Met_SUNCOSmid
+      - PHIS
+      - PRECTOT
+      - PS
+      - SLP
+      - SpeciesConc_CO_72
+      - SpeciesConc_NO_72
+      - SpeciesConc_NO2_72
+      - SpeciesConc_O3_72
+      - T2M
+      - TQV
+      - U10M
+      - V10M
+      - ZPBL
+
+  target_names:
+    72:
+      - SpeciesConc_CO_72
+      - SpeciesConc_NO_72
+      - SpeciesConc_NO2_72
+      - SpeciesConc_O3_72
+
+  data_dir: data/geos_cf/test_one_mem
+  train_member_idxs:
+    - 7
+    - 28
+    - 12
+    - 17
+    - 29
+    - 3
+    - 1
+    - 25
+    - 20
+    - 19
+    - 24
+    - 23
+    - 22
+    - 15
+    - 8
+    - 26
+    - 21
+    - 5
+    - 9
+
+  val_member_idxs:
+    - 1
+
+  test_member_idxs:
+    - 14
+    - 30
+    - 13
+    - 4
+    - 32
+    - 10
+    - 2
+    - 6
+    - 27
+
+  n_frames: 8
+  step_size: 1
+  use_future_feats: false
+  use_time: true
+  use_latlon: false
+  difference: "none"
+
+train:
+  batch_size: 64
+  lr: 0.0002
+  beta_1: 0.5
+  eval_freq: 10
+  chkpt_freq: 10
+
+device: 0
+
+chkpt_dir: exp/test_one_mem
