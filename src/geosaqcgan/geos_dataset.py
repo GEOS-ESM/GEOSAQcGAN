@@ -138,7 +138,7 @@ class GEOSCFLargeDataset(Dataset):
         """
         Returns the number of unique input output time sequences
         """
-        return self.n_timesteps - (self.window_size*2)
+        return self.n_timesteps - self.window_size
 
     @property
     def n_levels(self) -> int:
