@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests directory to run a single inference test
 - cmake rules to install JHU repos
 - goes specific preprocess script
+- forecast test directory that excercises new goesaqcgan codes
 ### Changed
-
+- refactors geosacgan to follow nasa-aqcgan dir structure
 ### Fixed
 
 ### Removed
