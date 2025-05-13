@@ -13,7 +13,8 @@ import pickle
 from pathlib import Path
 import numpy as np
 
-from read_geos_cf_datafiles import obtain_geos_cf_fields
+from .read_geos_cf_datafiles import obtain_geos_cf_fields
+from ..shared.gen_utils import read_pickle_file
 
 DO_NOT_NORMALIZE = ["lon", "lat", "lev", "time_of_year_x", "time_of_year_y", "time_of_day_x", "time_of_day_y"]
 
@@ -30,8 +31,7 @@ def load_member_data(m_dir: Path, filename: str) -> dict[str, np.ndarray]:
     """
     data_dir = m_dir
     m_data = data_dir / f"{filename}.pkl"
-    with open(m_data, "rb") as f:
-        m_dict = pickle.load(f)
+    m_dict = read_pickle_file(m_data)
 
     return m_dict
 
