@@ -20,7 +20,7 @@ from AQcGAN.utils import GANArchitecture, TrainHyperParams, DiffusionParams, Met
 from AQcGAN.models import Generator, Discriminator
 from AQcGAN.datasets import DifferenceDataset
 from .geos_dataset import GEOSCFLargeDataset
-from train_ens_ic import AQcGANTrainer
+from .train_ens_ic import AQcGANTrainer
 
 class GEOSAQcGANFCast(AQcGANTrainer):
     def __init__(self, 
@@ -57,7 +57,7 @@ class GEOSAQcGANFCast(AQcGANTrainer):
         self.disc = Discriminator(**gan_architecture.get_disc_kwargs()).to(device)
 
         # extract dataset class from config
-        mapping = {"Large": GEOSCFLargeEnsembleDataset}
+        mapping = {"Large": GEOSCFLargeDataset}
         class_str = data_params.pop("class", "Large")
         dataset_class = mapping[class_str]
 
@@ -84,6 +84,7 @@ class GEOSAQcGANFCast(AQcGANTrainer):
 
         # set up logging
         self.val_metrics = Metrics()
+        self.train_metrics = Metrics()
 
         self.n_epochs = 0
         self.chkpt_dir = chkpt_dir
