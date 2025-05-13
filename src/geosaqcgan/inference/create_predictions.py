@@ -30,9 +30,9 @@ import torch
 
 from ..shared.gen_utils import read_pickle_file
 from ..shared.aqcgan_utils import parse_yaml_prediction
-from utils import get_norm_stats
-from utils import get_ensemble_predictions
-from utils import inv_mean_spread
+from .utils import get_norm_stats
+from ..shared.aqcgan_utils import get_predictions
+from ..shared.aqcgan_utils import inv_pred
 
 DEVICE = 0 if torch.cuda.is_available() else "cpu"
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     trainer.gen.eval()
 
     # get meta data
-    meta_data = read_pickle_file(meta_filepath)
+    meta_data = read_pickle_file(args.meta_filepath)
     if not meta_data:
         sys.exit()
 
@@ -99,15 +99,14 @@ if __name__ == "__main__":
         exit()
 
     # returns mean and variance in normalized space across ensembles for each example in test set
-    ens_mean, ens_var = get_ensemble_predictions(trainer, args.split, is_pred=args.is_pred, is_baseline=args.is_baseline, n_passes=args.n_passes)
+    predictions = get_predictions(trainer, n_passes=args.n_passes)
 
     # invert mean and spread to get mean and std deviation in native space
-    ens_mean_inv, ens_std_inv = inv_mean_spread(ens_mean.numpy(), ens_var.numpy(), mu, sigma)
+    predictions_inv = inv_pred(predictions.numpy(), mu, sigma)
 
     # save "predictions"
     save_dict = {
-        f"ens_mean_pred_{args.split}_inv": ens_mean_inv,
-        f"ens_std_pred_{args.split}_inv": ens_std_inv,
+        f"pred_inv": predictions_inv,
     }
     with open(trainer.chkpt_dir / save_file, "wb") as fid:
         np.savez(fid, **save_dict)
