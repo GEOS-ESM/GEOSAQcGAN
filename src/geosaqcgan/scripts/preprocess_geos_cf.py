@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # save train/test array for variables and time data
     split_dir = Path(args.exp_dir) / split
     split_dir.mkdir(parents=True, exist_ok=True)
-    with open(split_dir / f"{exp_name}_{beg_date}_{end_date}.npy", "wb") as fid:
+    with open(split_dir / f"{exp_name}_{beg_date}_{end_date}_fields.npy", "wb") as fid:
         np.save(fid, m_array)
 
     print("Saved member data array.")
