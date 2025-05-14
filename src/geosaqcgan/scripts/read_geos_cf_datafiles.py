@@ -16,6 +16,11 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
+from ..shared.gen_utils import read_yaml_file
+from ..shared.gen_utils import get_list_files
+from ..shared.gen_utils import create_list_dates
+
+
 def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
     """
     Read data files from different GEOS CF colections to
@@ -87,23 +92,6 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
 
     return ds_dict
 
-def read_yaml_file(file_name) -> dict():
-    """
-    Read a YAML file and returns it content as a dictionary.
-    """
-    try:
-        with open(file_name, 'r') as fid:
-            return yaml.safe_load(fid)
-    except FileNotFoundError:
-        print(f"Error: File not found: {file_name}")
-        return None
-    except yaml.YAMLError as e:
-         print(f"Error parsing YAML file: {e}")
-         return None
-    else:
-        print(f"Successfully read the file: \n {file_name}")
-        print()
-
 def read_geos_cf_collection(data_dir: str, file_prefix: str, 
                     fields: list, fields_map: list, 
                     beg_date: int, end_date: int, 
@@ -145,6 +133,7 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     list_files = get_list_files(data_dir, file_prefix, beg_date, end_date)
     print(f"   ... {len(list_files)} files to read.")
 
+    # Compute the the time parameters
     date_list = list()
     time_list = list()
     time_of_year_x = list()
@@ -206,26 +195,6 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
 
     return ds
 
-
-def get_list_files(data_dir: str, file_prefix: str, beg_date: int, end_date: int) -> list:
-    """
-    """
-
-    # Convert the dates from string into datetime object
-    beg_date = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d')
-    end_date = dttm.datetime.strptime(f'{end_date}', '%Y%m%d')
-
-    freq_dt = dttm.timedelta(days=1)
-
-    list_files = list()
-    cur_date = beg_date
-    while cur_date <= end_date:
-        files = f"{data_dir}/{file_prefix}.{cur_date.strftime('%Y%m%d')}*.nc4"
-        list_files += sorted(glob.glob(files))
-        cur_date += freq_dt
-
-    return list_files
-
 def extract_date_from_file_name(file_name: str):
     """
     Given a file name like:
@@ -266,15 +235,4 @@ def comp_time_year_day(beg_date: int, beg_time: int)-> tuple():
     tod_y = np.sin(tod_2pi)
 
     return toy_x, toy_y, tod_x, tod_y
-
-def create_list_dates(beg_date: int, end_date: int, freq_hours: int):
-    """
-    """
-    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d')
-    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d')
-    edate += dttm.timedelta(days=1)
-    edate -= dttm.timedelta(minutes=1)
-
-    return pd.date_range(sdate, edate, freq=f"{freq_hours}h")
-
 
