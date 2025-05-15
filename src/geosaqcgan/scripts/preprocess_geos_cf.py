@@ -51,6 +51,7 @@ if __name__ == "__main__":
 
     beg_date = np.datetime_as_string(m_dict["time"][0], unit="D")
     end_date = np.datetime_as_string(m_dict["time"][-1], unit="D")
+    time_init  = m_dict["time"].copy()
     del m_dict["time"]
 
     lat = m_dict["lat"].copy()
@@ -75,7 +76,9 @@ if __name__ == "__main__":
     # save off metadata (lat, lon, z_mean, z_std, z_vars)
     meta_save_dict = {
             "lat": lat, 
-            "lon": lon, 
+            "lon": lon,
+            "time_init": time_init,
+            "exp_name": exp_name,
             "z_mean": z_mean,
             "z_std": z_std, 
             "z_vars": sorted(m_dict.keys()), 
