@@ -24,7 +24,8 @@ import sys
 import argparse
 from pathlib import Path
 import pickle
-
+from datetime import datetime
+import xarray as xr
 import numpy as np
 import torch
 
@@ -92,7 +93,12 @@ if __name__ == "__main__":
     # Get normalization stats
     mu, sigma = get_norm_stats(dataset.target_names[args.vertical_level], meta_data)
 
-    save_file = f"fc_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz"
+    # get outfile name
+    ts = str(meta_data['time_init'][0])[:13]
+    dt = meta_data['time_init'][1] - meta_data['time_init'][0]
+    dt = dt.astype('timedelta64[h]').astype(int)
+    exp_name = meta_data['exp_name']
+    save_file = f"{exp_name}.aqcgan_prediction.{ts}.nc4"
 
     if os.path.exists(trainer.chkpt_dir / save_file):
         print(f'{save_file} already exists! Skipping')
@@ -105,9 +111,22 @@ if __name__ == "__main__":
     predictions_inv = inv_pred(predictions.numpy(), mu, sigma)
 
     # save "predictions"
-    save_dict = {
-        f"pred_inv": predictions_inv,
+    ds = xr.Dataset(
+    data_vars={
+        'CO':  (['time', 'hour', 'lat', 'lon'], predictions[:,0,:,:,:]),
+        'NO':  (['time', 'hour', 'lat', 'lon'], predictions[:,1,:,:,:]),
+        'NO2': (['time', 'hour', 'lat', 'lon'], predictions[:,2,:,:,:]),
+        'O3':  (['time', 'hour', 'lat', 'lon'], predictions[:,3,:,:,:])
+
+    },
+    coords={
+        'time': meta_data['time_init'][0:dataset.time_span],
+        'hour': range(dataset.window_size)*dt,
+        'lat': meta_data['lat'],
+        'lon': meta_data['lon']
     }
-    with open(trainer.chkpt_dir / save_file, "wb") as fid:
-        np.savez(fid, **save_dict)
+)
+
+    ds.attrs['title'] = 'AQcGAN predictions'
+    ds.to_netcdf(trainer.chkpt_dir / save_file,engine='netcdf4')
 
