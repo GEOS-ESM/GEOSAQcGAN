@@ -3,7 +3,10 @@
 #  Run GEOS implementation of NASA-AQcGAN to test running a forecast
 #
 
-setenv HOME_DIR /discover/nobackup/pcastell/workspace/GEOSAQcGAN_update/GEOSAQcGAN/ 
+source  /usr/share/modules/init/csh                                        
+module purge
+
+setenv HOME_DIR /discover/nobackup/pcastell/workspace/GEOSAQcGAN_update/GEOSAQcGAN
 setenv PYTHONPATH ${HOME_DIR}/install/lib/Python
 set BIN = ${HOME_DIR}/install/bin/
 source $HOME_DIR/env@/g5_modules
@@ -27,13 +30,16 @@ if ( ! -f ${data_dir}/norm_stats.pkl ) then
    ln -s ${cur_dir}/norm_stats.pkl ${data_dir}                                
 endif                                                                      
                                                                            
-python3 ${HOME_DIR}/install/lib/Python/NASA_AQcGAN/scripts/preprocess_geos_cf.py $NORM_STATS_FILENAME $data_dir $geos_cf_yaml_fname
+python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $NORM_STATS_FILENAME $data_dir $geos_cf_yaml_fname
 
-ln -s ${data_dir}/*_meta.pkl ${data_dir}/meta.pkl
-ln -s ${data_dir}/val/*_fields.npy ${data_dir}/val/1.npy
-ln -s ${data_dir}/val/*_time.npy ${data_dir}/val/1_time.npy
+# Symbolic links do not work yet when reading files. We need to copy for now.
+cp ${data_dir}/*_meta.pkl ${data_dir}/meta.pkl
+cp ${data_dir}/val/*_fields.npy ${data_dir}/val/1.npy
+cp ${data_dir}/val/*_time.npy ${data_dir}/val/1_time.npy
 
-exit
+#ln -s ${data_dir}/*_meta.pkl ${data_dir}/meta.pkl
+#ln -s ${data_dir}/val/*_fields.npy ${data_dir}/val/1.npy
+#ln -s ${data_dir}/val/*_time.npy ${data_dir}/val/1_time.npy
 
 #ln -s $NOBACKUP/workspace/GEOSAQcGAN/GEOSAQcGAN/install/bin/tests/validate/data/geos_cf/test_one_mem/val ${data_dir}
 #ln -s ${PWD}/norm_stats.pkl ${data_dir}
@@ -44,6 +50,9 @@ exit
 # link over some pickle and checkpoint files to exp_dir
 set exp_dir = "./exp/${exp_name}"
 mkdir -p ${exp_dir}
+
+cp ${HOME_DIR}/src/tests/forecast/train_metrics.pkl .
+cp ${HOME_DIR}/src/tests/forecast/val_metrics.pkl .
 
 if ( ! -f ${exp_dir}/train_metrics.pkl ) then                               
    ln -s ${cur_dir}/train_metrics.pkl ${exp_dir}                                
@@ -63,7 +72,7 @@ set CHKPT_IDX=150
 set VERTICAL_LEVEL=72
 set N_PASSES=1
 
-python3 -im NASA_AQcGAN.inference.create_predictions $CONFIG_FILEPATH $CHKPT_IDX $META_FILEPATH --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL
+python3 -m NASA_AQcGAN.inference.create_predictions $CONFIG_FILEPATH $CHKPT_IDX $META_FILEPATH --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL
 
 # This final step creates a file in exp/test_one_mem called fc_pred_stats_days1_level72.npz
 # This contains one array that has shape [32, 4, 8, 181, 360]

@@ -49,6 +49,11 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
     beg_date = params["beg_date"]
     end_date = params["end_date"]
 
+    print('-'*70)
+    print(f"... Ready to read data files")
+    print(f"...    Experiment name: {exp_name}")
+    print(f"...         Date range: from {beg_date}  to {end_date}")
+    print('-'*70)
     # List of individual Xarrays Datasets, each one associated with a collection
     list_ds = list()
 
@@ -144,10 +149,10 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
         date_info = extract_date_from_file_name(file)
         mydate = date_info.split("_")
 
-        date_list.append(date_info])
+        date_list.append(date_info)
         time_list.append(mydate[1])
 
-        time_year_day = comp_time_year_day(mydate[0], mydate[1])
+        time_year_day = comp_time_year_day(mydate[0], int(mydate[1]))
         time_of_year_x.append(time_year_day[0])
         time_of_year_y.append(time_year_day[1])
         time_of_day_x.append(time_year_day[2])
@@ -184,7 +189,7 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     freq_hours = 24 // nrecs_per_day
     ds['time'] = create_list_dates(date_list[0], date_list[-1], freq_hours)
     ds['time'].attrs['begin_date'] = date_list[0].split("_")[0]
-    ds['time'].attrs['begin_time'] = date_list[0].split("_")[1]
+    ds['time'].attrs['begin_time'] = f'{date_list[0].split("_")[1]}00'
     ds['time'].attrs['long_name'] = 'time'
     ds['time'].attrs['time_increment'] = freq_hours*10000
 
@@ -196,7 +201,8 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
 
     # Write the dimensions and associated values in a netCDF file
     # for future use.
-    ds[['time', 'lat', 'lon']].to_netcdf(path="tmp_dimensions.nc4")
+    tmp_ds = ds[['lat', 'lon', 'time']]
+    tmp_ds.to_netcdf(path="tmp_dimensions.nc4")
 
     return ds
 

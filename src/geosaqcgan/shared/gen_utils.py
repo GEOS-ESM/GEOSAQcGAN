@@ -62,7 +62,7 @@ def read_pickle_file(filepath):
 
 
 def get_list_files(data_dir: str, file_prefix: str, 
-                   beg_date: int, end_date: int) -> list:
+                   beg_date: str, end_date: str) -> list:
     """
     Gather the list of files (with a specific prefix) within a date range
     that are located in a directory.
@@ -105,11 +105,11 @@ def create_list_dates(beg_date: str, end_date: str,
     dates : pd.DataFrame
        
     """
-    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d_%H')
-    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d_%H')
+    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d_%H%M')
+    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d_%H%M')
     # Because we need to include
     #edate += dttm.timedelta(days=1)
-    edate -= dttm.timedelta(minutes=1)
+    #edate -= dttm.timedelta(minutes=1)
 
     dates = pd.date_range(sdate, edate, freq=f"{freq_hours}h")
 
