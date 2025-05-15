@@ -201,11 +201,6 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     ds['time_of_day_x'] = xr.DataArray(np.array(time_of_day_x), dims='time')
     ds['time_of_day_y'] = xr.DataArray(np.array(time_of_day_y), dims='time')
 
-    # Write the dimensions and associated values in a netCDF file
-    # for future use.
-    tmp_ds = ds[['lat', 'lon', 'time']]
-    tmp_ds.to_netcdf(path="tmp_dimensions.nc4")
-
     return ds
 
 def extract_date_from_file_name(file_name: str) -> str:
