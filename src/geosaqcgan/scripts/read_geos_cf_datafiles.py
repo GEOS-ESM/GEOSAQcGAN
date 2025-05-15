@@ -18,6 +18,7 @@ import pandas as pd
 
 from ..shared.gen_utils import read_yaml_file
 from ..shared.gen_utils import get_list_files
+from ..shared.gen_utils import calc_nhours_between_dates
 from ..shared.gen_utils import create_list_dates
 
 
@@ -185,8 +186,9 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     date_list.sort()
     time_list = list(set(time_list))
     time_list.sort()
-    nrecs_per_day = len(time_list)
-    freq_hours = 24 // nrecs_per_day
+    #nrecs_per_day = len(time_list)
+    #freq_hours = 24 // nrecs_per_day
+    freq_hours = calc_nhours_between_dates(date_list[0], date_list[1])
     ds['time'] = create_list_dates(date_list[0], date_list[-1], freq_hours)
     ds['time'].attrs['begin_date'] = date_list[0].split("_")[0]
     ds['time'].attrs['begin_time'] = f'{date_list[0].split("_")[1]}00'

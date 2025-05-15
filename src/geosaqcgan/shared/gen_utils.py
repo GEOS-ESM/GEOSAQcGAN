@@ -115,4 +115,26 @@ def create_list_dates(beg_date: str, end_date: str,
 
     return dates
 
+def calc_nhours_between_dates(beg_date: str, end_date: str) -> int:
+    """
+    Calculate the number of hours between two dates in the format YYYYMMDD_HH.
+
+    Parameters
+    ----------
+    beg_date : str
+       Staring date in the format YYYYMMDD_HH
+    end_date : str
+       End date in the format YYYYMMDD_HH
+
+    Returns
+    -------
+    nhours : int
+       Number of hours between two dates
+    """
+    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d_%H%M')
+    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d_%H%M')
+
+    nhours = (edate - sdate).total_seconds() / 3600
+
+    return int(nhours)
 
