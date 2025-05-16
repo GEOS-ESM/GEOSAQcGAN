@@ -45,7 +45,6 @@ mkdir -p ${exp_dir}
 set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_march2025/
 set CHKPT_IDX=150
 set MODEL_DIR="${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/${CHKPT_IDX}"
-#set MODEL_DIR=/discover/nobackup/projects/gmao/aist-cf/merged_aqcgan_inputs/checkpoint/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/150
 
 #######################################################################
 #                   STEP 1: Preprocess Data
@@ -57,7 +56,22 @@ set geos_cf_yaml_fname="${cur_dir}/geos_cf_preproc_collections.yaml"
 # copy over model norm stats file
 # it will be edited by the preprocess script
 cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}                                
-                                                                           
+
+# clobber old preprocessed files just in case
+if ( -f ${cur_dir}/${data_dir}/meta.pkl ) then
+    rm ${cur_dir}/${data_dir}/*_meta.pkl 
+    rm ${cur_dir}/${data_dir}/meta.pkl
+endif
+                          
+if ( -f ${cur_dir}/${data_dir}/val/1.npy ) then
+    rm ${cur_dir}/${data_dir}/val/*_fields.npy 
+    rm ${cur_dir}/${data_dir}/val/1.npy
+endif
+if ( -f ${cur_dir}/${data_dir}/val/1_time.npy ) then
+    rm ${cur_dir}/${data_dir}/val/*_time.npy 
+endif
+
+# run preprocess script                                                 
 python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $NORM_STATS_FILENAME $data_dir $geos_cf_yaml_fname
 
 # Symbolic links to names the code expects.  Legacy - needs to be refactored.
@@ -95,11 +109,10 @@ set N_PASSES=1
 
 python3 -m NASA_AQcGAN.inference.create_predictions $CONFIG_FILEPATH $CHKPT_IDX $META_FILEPATH --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL
 
-# This final step creates a file in exp/test_one_mem called fc_pred_stats_days1_level72.npz
-# This contains one array that has shape [ntime, 4, 8, 181, 360]
+# This final step creates a file in exp/test_one_mem called $expname.aqcgan_prediction.$startdate.nc4
+# This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 8, 181, 360]
 
-# ntime - number of time series predicted.  depends on the size interval of data provided to the model
-# 4 - number of features predicted (CO,  NO, NO2, O3)
+# ntime - number of time series predicted.  depends on the time interval of data provided to the model.  will be number of input timesteps minus 7
 # 8 - number of frames (time steps) predicted
 # 181, 360 - lat, lon
 
