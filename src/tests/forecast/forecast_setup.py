@@ -21,7 +21,7 @@ import shutil
 
 def print_message():
     mssg = """
-           -------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------
     This setup script creates a self-contained experiment directory to run
     a forecast experiment.
 
@@ -32,7 +32,7 @@ def print_message():
  
     It will then create an experiment directory that has a self-contained and ready
     to use SLURM script forecast_run.j.
-           -------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------
     """
     print(mssg)
 
@@ -64,7 +64,7 @@ def search_reaplace_in_file(loc_filename: str,
             file_content = file_content.replace(key, dict_words[key])
             print(f"Successfully replaced '{key}' with '{dict_words[key]}' in '{new_filename}'.")
 
-        with open(file_path, 'w') as file:
+        with open(new_filename, 'w') as file:
             file.write(file_content)
 
     except FileNotFoundError:
@@ -131,13 +131,14 @@ def create_experiment_directory():
 
     loc_filename = "forecast_run.j"
     target_dir = experiment_directory
-    dict_words = {"@SRCDIR": source_directory, "@GROUPID": my_group}
+    dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
     search_reaplace_in_file(loc_filename, target_dir, dict_words)
 
     print()
     print("-"*70)
     print(f"The experiment directory was created: \n\n\t {experiment_directory}")
-    print("Go to the folder and if necessary edit the file {loc_filename}.")
+    print()
+    print(f"Go to the folder and if necessary edit the file {loc_filename}.")
     print()
     print("From the experiment directory, issue the command: ")
     print(f"   sbatch {loc_filename}")
@@ -146,4 +147,4 @@ def create_experiment_directory():
 
 if __name__ == "__main__":
     print_message()
-    create_experiemnt_directory()
+    create_experiment_directory()

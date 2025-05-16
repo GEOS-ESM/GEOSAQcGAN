@@ -77,4 +77,3 @@ python3 -m NASA_AQcGAN.inference.create_predictions $CONFIG_FILEPATH $CHKPT_IDX 
 # 4 - number of features predicted (CO,  NO, NO2, O3)
 # 8 - number of frames (time steps) predicted
 # 181, 360 - lat, lon
-

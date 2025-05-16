@@ -29,6 +29,7 @@ source $SRC_DIR/env@/g5_modules
 #######################################################################
 
 set cur_dir = "${PWD}"
+set exp_name = test_one_mem
 
 set data_dir = "./data/geos_cf/${exp_name}"
 mkdir -p ${data_dir}
@@ -39,8 +40,6 @@ mkdir -p ${exp_dir}
 #######################################################################
 #                   Set Experiment Run Variables
 #######################################################################
-
-set exp_name = test_one_mem
 
 # AQcGAN model directory
 set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_march2025/
