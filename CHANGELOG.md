@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - goes specific preprocess script
 - forecast test directory that excercises new goesaqcgan codes
 - write outputs to netcdf file
+- add setup script for forecast test
 ### Changed
 - refactors geosacgan to follow nasa-aqcgan dir structure
 ### Fixed
