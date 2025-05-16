@@ -18,6 +18,7 @@ import pandas as pd
 
 from ..shared.gen_utils import read_yaml_file
 from ..shared.gen_utils import get_list_files
+from ..shared.gen_utils import calc_nhours_between_dates
 from ..shared.gen_utils import create_list_dates
 
 
@@ -49,6 +50,11 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
     beg_date = params["beg_date"]
     end_date = params["end_date"]
 
+    print('-'*70)
+    print(f"... Ready to read data files")
+    print(f"...    Experiment name: {exp_name}")
+    print(f"...         Date range: from {beg_date}  to {end_date}")
+    print('-'*70)
     # List of individual Xarrays Datasets, each one associated with a collection
     list_ds = list()
 
@@ -142,11 +148,12 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     time_of_day_y = list()
     for file in list_files:
         date_info = extract_date_from_file_name(file)
+        mydate = date_info.split("_")
 
-        date_list.append(date_info[0])
-        time_list.append(date_info[1])
+        date_list.append(date_info)
+        time_list.append(mydate[1])
 
-        time_year_day = comp_time_year_day(date_info[0], date_info[1])
+        time_year_day = comp_time_year_day(mydate[0], int(mydate[1]))
         time_of_year_x.append(time_year_day[0])
         time_of_year_y.append(time_year_day[1])
         time_of_day_x.append(time_year_day[2])
@@ -179,11 +186,12 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     date_list.sort()
     time_list = list(set(time_list))
     time_list.sort()
-    nrecs_per_day = len(time_list)
-    freq_hours = 24 // nrecs_per_day
+    #nrecs_per_day = len(time_list)
+    #freq_hours = 24 // nrecs_per_day
+    freq_hours = calc_nhours_between_dates(date_list[0], date_list[1])
     ds['time'] = create_list_dates(date_list[0], date_list[-1], freq_hours)
-    ds['time'].attrs['begin_date'] = date_list[0]
-    ds['time'].attrs['begin_time'] = str(time_list[0]).ljust(4, '0')
+    ds['time'].attrs['begin_date'] = date_list[0].split("_")[0]
+    ds['time'].attrs['begin_time'] = f'{date_list[0].split("_")[1]}00'
     ds['time'].attrs['long_name'] = 'time'
     ds['time'].attrs['time_increment'] = freq_hours*10000
 
@@ -195,23 +203,24 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
 
     return ds
 
-def extract_date_from_file_name(file_name: str):
+def extract_date_from_file_name(file_name: str) -> str:
     """
     Given a file name like:
        chm_inst_1hr_glo_L1440x721_v72/CF2_control.chm_inst_1hr_glo_L1440x721_v72.20240102_2100z.nc4
     we return:
-       20240102 and 2100
+       20240102_2100
     that represent the date and time record for the file.
     """
     file_stem = Path(file_name).stem
     mydate = file_stem.split(".")[-1]
-    mydate = mydate.split("_")
-    beg_date = mydate[0]
-    beg_time = mydate[1][:4]
-    if beg_time.endswith('30'):
-        beg_time = f"{beg_time[0:2]}00"
+    mydate = mydate[:-1]  # remove the z character
 
-    return int(beg_date), int(beg_time)
+    # We make this change baecause we want to ensure that
+    # all the data files we read have whole hours (no minutes).
+    if mydate.endswith('30'):
+        mydate = mydate[:-2]+"00"
+
+    return mydate
 
 def comp_time_year_day(beg_date: int, beg_time: int)-> tuple():
     """

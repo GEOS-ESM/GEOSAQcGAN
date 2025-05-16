@@ -23,7 +23,7 @@ class GEOSCFLargeDataset(GEOSCFLargeEnsembleDataset):
         """
         Returns the number of unique input output time sequences
         """
-        return self.n_timesteps - self.window_size 
+        return self.n_timesteps - self.window_size + 1 
 
     def __getitem__(self, idx: int):
         """Get single data example

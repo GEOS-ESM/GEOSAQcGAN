@@ -51,14 +51,14 @@ if __name__ == "__main__":
 
     beg_date = np.datetime_as_string(m_dict["time"][0], unit="D")
     end_date = np.datetime_as_string(m_dict["time"][-1], unit="D")
+    time_init  = m_dict["time"].copy()
     del m_dict["time"]
 
     lat = m_dict["lat"].copy()
     lon = m_dict["lon"].copy()
 
     print("Normalizing and reshaping data...")
-    with open(args.norm_stats_file, "rb") as f:
-        norm_stats = pickle.load(f)
+    norm_stats = np.load(args.norm_stats_file,allow_pickle=True)
 
     z_mean = norm_stats["z_mean"]
     z_std = norm_stats["z_std"]
@@ -76,10 +76,12 @@ if __name__ == "__main__":
     # save off metadata (lat, lon, z_mean, z_std, z_vars)
     meta_save_dict = {
             "lat": lat, 
-            "lon": lon, 
+            "lon": lon,
+            "time_init": time_init,
+            "exp_name": exp_name,
             "z_mean": z_mean,
             "z_std": z_std, 
-            "z_vars": norm_stats['variables'], 
+            "z_vars": sorted(m_dict.keys()), 
             "time_vars": DO_NOT_NORMALIZE[-4:]
     }
     with open(Path(args.exp_dir) / f"{exp_name}_{beg_date}_{end_date}_meta.pkl", "wb") as fid:
@@ -89,7 +91,7 @@ if __name__ == "__main__":
     # save train/test array for variables and time data
     split_dir = Path(args.exp_dir) / split
     split_dir.mkdir(parents=True, exist_ok=True)
-    with open(split_dir / f"{exp_name}_{beg_date}_{end_date}.npy", "wb") as fid:
+    with open(split_dir / f"{exp_name}_{beg_date}_{end_date}_fields.npy", "wb") as fid:
         np.save(fid, m_array)
 
     print("Saved member data array.")
@@ -98,3 +100,7 @@ if __name__ == "__main__":
     print("Saved time data array.")
 
 
+    norm_stats['n_timesteps'] = time_array.shape[1]
+    with open(args.norm_stats_file, "wb") as fid:
+        pickle.dump(norm_stats, fid, protocol=pickle.HIGHEST_PROTOCOL)
+    print("Overwrite norm_stats n_timesteps.") 

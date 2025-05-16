@@ -61,28 +61,29 @@ def read_pickle_file(filepath):
         return None
 
 
-def get_list_files(data_dir: str, file_prefix: str, beg_date: int, end_date: int) -> list:
+def get_list_files(data_dir: str, file_prefix: str, 
+                   beg_date: str, end_date: str) -> list:
     """
     Gather the list of files (with a specific prefix) within a date range
     that are located in a directory.
     """
 
     # Convert the dates from string into datetime object
-    beg_date = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d')
-    end_date = dttm.datetime.strptime(f'{end_date}', '%Y%m%d')
+    beg_date = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d-%H')
+    end_date = dttm.datetime.strptime(f'{end_date}', '%Y%m%d-%H')
 
-    freq_dt = dttm.timedelta(days=1)
+    freq_dt = dttm.timedelta(hours=1)
 
     list_files = list()
     cur_date = beg_date
     while cur_date <= end_date:
-        files = f"{data_dir}/{file_prefix}.{cur_date.strftime('%Y%m%d')}*.nc4"
+        files = f"{data_dir}/{file_prefix}.{cur_date.strftime('%Y%m%d_%H')}*.nc4"
         list_files += sorted(glob.glob(files))
         cur_date += freq_dt
 
     return list_files
 
-def create_list_dates(beg_date: int, end_date: int, 
+def create_list_dates(beg_date: str, end_date: str, 
                       freq_hours: int):
     """
     Given a starting date, ending date and a frequency (in hours),
@@ -92,10 +93,10 @@ def create_list_dates(beg_date: int, end_date: int,
 
     Parameters
     ----------
-    beg_date : int
-       Staring date
-    end_date : int
-       End date
+    beg_date : str
+       Staring date in the format YYYYMMDD_HH
+    end_date : str
+       End date in the format YYYYMMDD_HH
     freq_hours : int
        Number of hours between two consecutive dates
 
@@ -104,14 +105,36 @@ def create_list_dates(beg_date: int, end_date: int,
     dates : pd.DataFrame
        
     """
-    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d')
-    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d')
+    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d_%H%M')
+    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d_%H%M')
     # Because we need to include
-    edate += dttm.timedelta(days=1)
-    edate -= dttm.timedelta(minutes=1)
+    #edate += dttm.timedelta(days=1)
+    #edate -= dttm.timedelta(minutes=1)
 
     dates = pd.date_range(sdate, edate, freq=f"{freq_hours}h")
 
     return dates
 
+def calc_nhours_between_dates(beg_date: str, end_date: str) -> int:
+    """
+    Calculate the number of hours between two dates in the format YYYYMMDD_HH.
+
+    Parameters
+    ----------
+    beg_date : str
+       Staring date in the format YYYYMMDD_HH
+    end_date : str
+       End date in the format YYYYMMDD_HH
+
+    Returns
+    -------
+    nhours : int
+       Number of hours between two dates
+    """
+    sdate = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d_%H%M')
+    edate = dttm.datetime.strptime(f'{end_date}', '%Y%m%d_%H%M')
+
+    nhours = (edate - sdate).total_seconds() / 3600
+
+    return int(nhours)
 
