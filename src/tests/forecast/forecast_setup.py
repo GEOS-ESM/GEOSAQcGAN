@@ -104,6 +104,9 @@ def create_experiment_directory():
 
     experiment_directory.mkdir(parents=True, exist_ok=True)
 
+    # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
+    config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
+    shutil.copy(config_filepath, experiment_directory / config_filepath.name)
 
     # Get the sponsor code id
 

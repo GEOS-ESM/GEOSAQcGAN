@@ -52,7 +52,7 @@ set MODEL_DIR="${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_per
 #######################################################################
 
 set NORM_STATS_FILENAME="${data_dir}/norm_stats.pkl"                        
-set geos_cf_yaml_fname="${SRC_DIR}/install/etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"  
+set geos_cf_yaml_fname="${cur_dir}/geos_cf_preproc_collections.yaml"  
 
 # copy over model norm stats file
 # it will be edited by the preprocess script

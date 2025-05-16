@@ -8,5 +8,9 @@ esma_set_this()
   file(GLOB files *sh)
   install(PROGRAMS ${files} DESTINATION bin/tests/${this})
 
-  file(GLOB files forecast_*)
-  install(FILES ${files} DESTINATION bin)
+  foreach (forecastfile forecast_setup.py forecast_run.j)
+   install (
+      PROGRAMS ${forecastfile}
+      DESTINATION bin
+      )
+  endforeach ()
