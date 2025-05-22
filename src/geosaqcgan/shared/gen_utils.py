@@ -62,17 +62,32 @@ def read_pickle_file(filepath):
 
 
 def get_list_files(data_dir: str, file_prefix: str, 
-                   beg_date: str, end_date: str) -> list:
+                   beg_date: str, end_date: str,
+                   freq_nhours: int=1) -> list:
     """
     Gather the list of files (with a specific prefix) within a date range
-    that are located in a directory.
+    that are located in a directory. We will only take file at the
+    freq_nhours frequency.
+
+    Parameters
+    ----------
+    data_dir : str
+       Full path to the directory where the data files reside.
+    file_prefix : str
+       Prefix of the file to be read.
+    beg_date : str
+       Start date in the format YYYYMMDD-HH
+    end_date : str
+       End date in the format YYYYMMDD-HH
+    freq_nhours : int
+       Frequency (in hours) for reading files.
     """
 
     # Convert the dates from string into datetime object
     beg_date = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d-%H')
     end_date = dttm.datetime.strptime(f'{end_date}', '%Y%m%d-%H')
 
-    freq_dt = dttm.timedelta(hours=1)
+    freq_dt = dttm.timedelta(hours=freq_nhours)
 
     list_files = list()
     cur_date = beg_date
@@ -84,7 +99,7 @@ def get_list_files(data_dir: str, file_prefix: str,
     return list_files
 
 def create_list_dates(beg_date: str, end_date: str, 
-                      freq_hours: int):
+                      freq_nhours: int=1):
     """
     Given a starting date, ending date and a frequency (in hours),
     list all the dates (as datetime objects) in the date range and
@@ -97,7 +112,7 @@ def create_list_dates(beg_date: str, end_date: str,
        Staring date in the format YYYYMMDD_HH
     end_date : str
        End date in the format YYYYMMDD_HH
-    freq_hours : int
+    freq_nhours : int
        Number of hours between two consecutive dates
 
     Returns
@@ -111,7 +126,7 @@ def create_list_dates(beg_date: str, end_date: str,
     #edate += dttm.timedelta(days=1)
     #edate -= dttm.timedelta(minutes=1)
 
-    dates = pd.date_range(sdate, edate, freq=f"{freq_hours}h")
+    dates = pd.date_range(sdate, edate, freq=f"{freq_nhours}h")
 
     return dates
 

@@ -47,13 +47,15 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
         sys.exit()
 
     exp_name = params["exp_name"]
+    freq_nhours = params["freq_nhours"]
     beg_date = params["beg_date"]
     end_date = params["end_date"]
 
     print('-'*70)
     print(f"... Ready to read data files")
     print(f"...    Experiment name: {exp_name}")
-    print(f"...         Date range: from {beg_date}  to {end_date}")
+    print(f"...         Date range: from {beg_date} to {end_date}")
+    print(f"...         Frequency of reading files (hours): {freq_nhours}")
     print('-'*70)
     # List of individual Xarrays Datasets, each one associated with a collection
     list_ds = list()
@@ -78,6 +80,7 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
                 fields = col_params["fields"],
                 beg_date = beg_date, 
                 end_date = end_date, 
+                freq_nhours = freq_nhours,
                 fields_map = col_params["fields_map"], 
                 level_id = level_id)
 
@@ -100,7 +103,8 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
 
 def read_geos_cf_collection(data_dir: str, file_prefix: str, 
                     fields: list, fields_map: list, 
-                    beg_date: int, end_date: int, 
+                    beg_date: str, end_date: str, 
+                    freq_nhours: int,
                     level_id: int=-1) -> xr.Dataset:
     """
     Given a range of dates, read in time series fields within the range only.
@@ -120,10 +124,12 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
        This list should have a one to one match with names in fields_map.
        If the names fields_map should not be changed, this list should be
        the same as fields_map.
-    beg_date : int
-       Start date in the format YYYYMMDD
-    end_date : int
-       End date in the format YYYYMMDD
+    beg_date : str
+       Start date in the format YYYYMMDD-HH
+    end_date : str
+       End date in the format YYYYMMDD-HH
+    freq_nhours : int
+       Frequency (in hours) for reading files.
     level_id : int
        Vertical level of interest (1 to 72 where 72 is the surface).
        This only apply if dealing with multiple level data files.
@@ -136,7 +142,8 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     """
 
     # Obtain the list of files to read
-    list_files = get_list_files(data_dir, file_prefix, beg_date, end_date)
+    list_files = get_list_files(data_dir, file_prefix, 
+                                beg_date, end_date, freq_nhours)
     print(f"   ... {len(list_files)} files to read.")
 
     # Compute the the time parameters
@@ -186,14 +193,13 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
     date_list.sort()
     time_list = list(set(time_list))
     time_list.sort()
-    #nrecs_per_day = len(time_list)
-    #freq_hours = 24 // nrecs_per_day
-    freq_hours = calc_nhours_between_dates(date_list[0], date_list[1])
-    ds['time'] = create_list_dates(date_list[0], date_list[-1], freq_hours)
+    nhours = calc_nhours_between_dates(date_list[0], date_list[1])
+    assert freq_nhours == nhours, "WRONG NUMBER OF HOURS BETWEEN TWO CONSECUTIVE FILES."
+    ds['time'] = create_list_dates(date_list[0], date_list[-1], freq_nhours)
     ds['time'].attrs['begin_date'] = date_list[0].split("_")[0]
     ds['time'].attrs['begin_time'] = f'{date_list[0].split("_")[1]}00'
     ds['time'].attrs['long_name'] = 'time'
-    ds['time'].attrs['time_increment'] = freq_hours*10000
+    ds['time'].attrs['time_increment'] = freq_nhours*10000
 
     # Add new variables
     ds['time_of_year_x'] = xr.DataArray(np.array(time_of_year_x), dims='time')
