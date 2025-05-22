@@ -47,7 +47,10 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
         sys.exit()
 
     exp_name = params["exp_name"]
-    freq_nhours = params["freq_nhours"]
+    try:
+        freq_nhours = params["freq_nhours"]
+    except:
+        freq_nhours = 1
     beg_date = params["beg_date"]
     end_date = params["end_date"]
 
