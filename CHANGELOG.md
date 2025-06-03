@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - forecast test directory that excercises new goesaqcgan codes
 - write outputs to netcdf file
 - add setup script for forecast test
+- Add in the preproc YAML configuration file a parameter determining the frequency (in hours) we want to read files.
 ### Changed
 - refactors geosacgan to follow nasa-aqcgan dir structure
 - update forcast slurm script to clobber old data files
