@@ -5,16 +5,11 @@ It reads the YAML file containing the collections of interest.
 In each collection, we list the fields we want to read and save.
 """
 
-import yaml
-import os
 import sys
-import glob
-from copy import deepcopy
 from pathlib import Path
 import datetime as dttm
 import xarray as xr
 import numpy as np
-import pandas as pd
 
 from ..shared.gen_utils import read_yaml_file
 from ..shared.gen_utils import get_list_files
@@ -22,7 +17,7 @@ from ..shared.gen_utils import calc_nhours_between_dates
 from ..shared.gen_utils import create_list_dates
 
 
-def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
+def obtain_geos_cf_fields(yaml_file_name: str) -> dict:
     """
     Read data files from different GEOS CF colections to
     extract specific fields that are stored in a dictionary.
@@ -43,7 +38,7 @@ def obtain_geos_cf_fields(yaml_file_name: str) -> dict():
 
     params = read_yaml_file(yaml_file_name)
     if not params:
-        print(f"Was not able to read the content of {file_name}")
+        print(f"Was not able to read the content of {yaml_file_name}")
         sys.exit()
 
     exp_name = params["exp_name"]
@@ -163,7 +158,7 @@ def read_geos_cf_collection(data_dir: str, file_prefix: str,
         date_list.append(date_info)
         time_list.append(mydate[1])
 
-        time_year_day = comp_time_year_day(mydate[0], int(mydate[1]))
+        time_year_day = comp_time_year_day(int(mydate[0]), int(mydate[1]))
         time_of_year_x.append(time_year_day[0])
         time_of_year_y.append(time_year_day[1])
         time_of_day_x.append(time_year_day[2])
@@ -231,7 +226,7 @@ def extract_date_from_file_name(file_name: str) -> str:
 
     return mydate
 
-def comp_time_year_day(beg_date: int, beg_time: int)-> tuple():
+def comp_time_year_day(beg_date: int, beg_time: int)-> tuple:
     """
     """
     # map to 0 - 2pi and project to unit circle
