@@ -8,15 +8,13 @@ Utility functions:
 """
 
 import yaml
-import os
-import sys
 import glob
-from pathlib import Path
 import datetime as dttm
 import pandas as pd
 import pickle
+from typing import Union
 
-def read_yaml_file(file_name) -> dict():
+def read_yaml_file(file_name) -> Union[dict, None]:
     """
     Read a YAML file and returns it content as a dictionary.
     """
@@ -29,9 +27,7 @@ def read_yaml_file(file_name) -> dict():
     except yaml.YAMLError as e:
          print(f"Error parsing YAML file: {e}")
          return None
-    else:
-        print(f"Successfully read the file: \n {file_name}")
-        print()
+
 
 def read_pickle_file(filepath):
     """ 
@@ -76,22 +72,22 @@ def get_list_files(data_dir: str, file_prefix: str,
     file_prefix : str
        Prefix of the file to be read.
     beg_date : str
-       Start date in the format YYYYMMDD-HH
+       Start date in the format YYYYMMDD_HHz
     end_date : str
-       End date in the format YYYYMMDD-HH
+       End date in the format YYYYMMDD_HHz
     freq_nhours : int
        Frequency (in hours) for reading files.
     """
 
     # Convert the dates from string into datetime object
-    beg_date = dttm.datetime.strptime(f'{beg_date}', '%Y%m%d-%H')
-    end_date = dttm.datetime.strptime(f'{end_date}', '%Y%m%d-%H')
+    date_s = dttm.datetime.strptime(beg_date, '%Y%m%d_%Hz')
+    date_e = dttm.datetime.strptime(end_date, '%Y%m%d_%Hz')
 
     freq_dt = dttm.timedelta(hours=freq_nhours)
 
     list_files = list()
-    cur_date = beg_date
-    while cur_date <= end_date:
+    cur_date = date_s
+    while cur_date <= date_e:
         files = f"{data_dir}/{file_prefix}.{cur_date.strftime('%Y%m%d_%H')}*.nc4"
         list_files += sorted(glob.glob(files))
         cur_date += freq_dt
