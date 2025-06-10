@@ -32,3 +32,4 @@ parallel_build.o*
 /src/Shared/@AQcGAN
 /src/Shared/NASA-AQcGAN@
 /src/Shared/@NASA-AQcGAN
+/runs*
