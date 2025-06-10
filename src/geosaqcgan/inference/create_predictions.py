@@ -38,9 +38,10 @@ DEVICE = 0 if torch.cuda.is_available() else "cpu"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config_filepath", type=str, help="Full path to the experiment config file")
-    parser.add_argument("chkpt_idx", type=int, help="Model checkpoint.")
-    parser.add_argument("meta_filepath", type=str, help="Full path to the Pickle file containing experiment data.")
+    parser.add_argument("--exp_dir", type=str, help="Full path to the experiment directory")
+    parser.add_argument("--config_filepath", type=str, help="Full path to the experiment config file")
+    parser.add_argument("--chkpt_idx", type=int, help="Model checkpoint.")
+    parser.add_argument("--meta_filepath", type=str, help="Full path to the Pickle file containing experiment data.")
     parser.add_argument("--n_passes", "-n", type=int, default=1, help="Number of forward passes to run.")
     parser.add_argument("--vertical_level", type=int, default=72, help="Vertical level to evaluate on")
     args = parser.parse_args()
@@ -126,7 +127,7 @@ if __name__ == "__main__":
     # loop over fcst init times
     for ft in range(len(fcst_init_times)):
         ts = pd.Timestamp(fcst_init_times[ft]).strftime("%Y%m%d_%Hz")
-        save_file = f"{exp_name}.aqcgan_prediction.{ts}.nc4"
+        save_file = f"{args.exp_dir}/aqcgan_predictions/{exp_name}.aqcgan_prediction.{ts}.nc4"
 
         ds = xr.Dataset(
                 data_vars={
