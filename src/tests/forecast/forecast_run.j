@@ -6,7 +6,6 @@
  
 #SBATCH -J geosaqcgan_fct
 #SBATCH --nodes=1
-#SBATCH --constraint=mil
 #SBATCH --time=01:00:00
 #SBATCH -A @GROUPID
 #SBATCH -o output_geosaqcgan-%j.log
@@ -24,6 +23,18 @@ setenv PYTHONPATH ${SRC_DIR}/install/lib/Python
 
 source $SRC_DIR/env@/g5_modules
 
+# This switch toggles whether we preprocess the GEOS-CF data 
+# or use existing data
+set PREPROCESS_DATA = 0
+
+# This will delete all previous output
+set CLEAN_PREV_OUTPUT = 0
+
+# How many passes of the model to be run?
+# Make sure that the time period (end - start) in the 
+# geos_cf_yaml file is at least max_n_passes + 21 hrs
+set MAX_N_PASSES=2
+
 #######################################################################
 #                 Create Experiment Sub-Directories
 #######################################################################
@@ -31,10 +42,10 @@ source $SRC_DIR/env@/g5_modules
 set cur_dir = "${PWD}"
 set exp_name = test_one_mem
 
-set data_dir = "./data/geos_cf/${exp_name}"
+set data_dir = "${cur_dir}/data/geos_cf/${exp_name}"
 mkdir -p ${data_dir}
 #
-set exp_dir = "./exp/${exp_name}"
+set exp_dir = "${cur_dir}/exp/${exp_name}"
 mkdir -p ${exp_dir}
 
 #######################################################################
@@ -49,46 +60,31 @@ set MODEL_DIR="${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_per
 #######################################################################
 #                   STEP 1: Preprocess Data
 #######################################################################
-
 set NORM_STATS_FILENAME="${data_dir}/norm_stats.pkl"                        
 set geos_cf_yaml_fname="${cur_dir}/geos_cf_preproc_collections.yaml"  
+if ( $PREPROCESS_DATA == 1) then
 
-# copy over model norm stats file
-# it will be edited by the preprocess script
-cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}                                
+    # copy over model norm stats file
+    # it will be edited by the preprocess script
+    cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}                                
 
-# clobber old preprocessed files just in case
-if ( -f ${cur_dir}/${data_dir}/meta.pkl ) then
-    rm ${cur_dir}/${data_dir}/*_meta.pkl 
-    rm ${cur_dir}/${data_dir}/meta.pkl
-endif
-                          
-if ( -f ${cur_dir}/${data_dir}/val/1.npy ) then
-    rm ${cur_dir}/${data_dir}/val/*_fields.npy 
-    rm ${cur_dir}/${data_dir}/val/1.npy
-endif
-if ( -f ${cur_dir}/${data_dir}/val/1_time.npy ) then
-    rm ${cur_dir}/${data_dir}/val/*_time.npy 
-endif
-
-# run preprocess script                                                 
-python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $NORM_STATS_FILENAME $data_dir $geos_cf_yaml_fname
-
-# Symbolic links to names the code expects.  Legacy - needs to be refactored.
-if ( ! -f ${cur_dir}/${data_dir}/val/1.npy ) then
-    ln -s ${cur_dir}/${data_dir}/val/*_fields.npy ${cur_dir}/${data_dir}/val/1.npy
-endif
-if ( ! -f ${cur_dir}/${data_dir}/val/1_time.npy ) then
-    ln -s ${cur_dir}/${data_dir}/val/*_time.npy ${cur_dir}/${data_dir}/val/1_time.npy
-endif
-if ( ! -f ${cur_dir}/${data_dir}/meta.pkl ) then
-    ln -s ${cur_dir}/${data_dir}/*_meta.pkl ${cur_dir}/${data_dir}/meta.pkl
+    # run preprocess script                                                 
+    echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
+        --norm_stats_file $NORM_STATS_FILENAME \
+        --exp_dir $data_dir \
+        --geos_cf_yaml_file $geos_cf_yaml_fname \
+        --validation_file"
+    
+    python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
+        --norm_stats_file $NORM_STATS_FILENAME \
+        --exp_dir $data_dir \
+        --geos_cf_yaml_file $geos_cf_yaml_fname \
+        --validation_file
 endif
 
 #######################################################################
 #          STEP 2: Run the NASA-AQcGAN Model in inference mode 
 #######################################################################
-
 # link over AQcGAN model files (pickle and checkpoint files) to exp_dir
 if ( ! -f ${exp_dir}/train_metrics.pkl ) then
    ln -s ${MODEL_ROOT}/train_metrics.pkl ${exp_dir}
@@ -105,14 +101,56 @@ endif
 set META_FILEPATH=${data_dir}/meta.pkl
 set CONFIG_FILEPATH="${SRC_DIR}/install/bin/tests/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
 set VERTICAL_LEVEL=72
-set N_PASSES=1
 
-python3 -m NASA_AQcGAN.inference.create_predictions $CONFIG_FILEPATH $CHKPT_IDX $META_FILEPATH --n_passes $N_PASSES --vertical_level $VERTICAL_LEVEL
+set n_passes=1
 
-# This final step creates a file in exp/test_one_mem called $expname.aqcgan_prediction.$startdate.nc4
-# This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 8, 181, 360]
+set exp_name = `awk '/exp_name:/ {print $2}' $geos_cf_yaml_fname`
+set beg_date = `awk '/beg_date:/ {print $2}' $geos_cf_yaml_fname`
+set end_date = `awk '/end_date:/ {print $2}' $geos_cf_yaml_fname`
 
-# ntime - number of time series predicted.  depends on the time interval of data provided to the model.  will be number of input timesteps minus 7
-# 8 - number of frames (time steps) predicted
+# Symbolic links to names the code expects.  Legacy - needs to be refactored.
+ln -sf ${data_dir}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${data_dir}/val/1.npy
+ln -sf ${data_dir}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${data_dir}/val/1_time.npy
+ln -sf ${data_dir}/${exp_name}.${beg_date}-${end_date}.meta.pkl ${data_dir}/meta.pkl
+
+if ( ! -e ${data_dir}/val/1.npy || \
+     ! -e ${data_dir}/val/1_time.npy || \
+     ! -e ${data_dir}/meta.pkl ) then
+    echo "Broken symbolic links for either .npy files or meta.pkl. Did you preprocess GEOS-CF data?"
+    exit
+endif
+
+if ( $CLEAN_PREV_OUTPUT == 1 ) then
+    rm -f ${exp_dir}/aqcgan_predictions/*.nc4
+endif
+
+while ( $n_passes <= $MAX_N_PASSES )
+    echo "python3 -m NASA_AQcGAN.inference.create_predictions \
+        --config_filepath $CONFIG_FILEPATH \
+        --chkpt_idx $CHKPT_IDX \
+        --meta_filepath $META_FILEPATH \
+        --n_passes $n_passes \
+        --vertical_level $VERTICAL_LEVEL"
+
+    python3 -m NASA_AQcGAN.inference.create_predictions \
+        --config_filepath $CONFIG_FILEPATH \
+        --chkpt_idx $CHKPT_IDX \
+        --meta_filepath $META_FILEPATH \
+        --n_passes $n_passes \
+        --vertical_level $VERTICAL_LEVEL
+    if ($? != 0) then
+        echo "Error running the model! Exiting..."
+        exit(1)
+    else
+        @ n_passes++
+    endif
+end
+
+# This final step creates a file in exp/test_one_mem/aqcgan_predictions called 
+# $expname.aqcgan_prediction.$fcstdate.nc4
+# This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 181, 360]
+# If the file exists then it is appended with new data, but not overwritten.
+# ntime - number of time series predicted.  
+#         depends on the time interval of data provided to the model.  
+#         will be number of input timesteps minus 8 * n_passes
 # 181, 360 - lat, lon
-
