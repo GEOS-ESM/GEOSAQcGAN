@@ -15,6 +15,7 @@
 from pathlib import Path
 import sys
 import os
+import glob
 import subprocess
 import shutil
 
@@ -107,6 +108,11 @@ def create_experiment_directory():
     # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
     config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
     shutil.copy(config_filepath, experiment_directory / config_filepath.name)
+
+    # Copy the AQcGAN YAML configuration file to the experiment directory.
+    aqcgan_yaml_files = glob.glob(os.path.join("tests/forecast", "*.yaml"))
+    for files in aqcgan_yaml_files:
+        shutil.copy(files, experiment_directory)
 
     # Get the sponsor code id
 
