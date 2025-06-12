@@ -25,7 +25,7 @@ source $SRC_DIR/env@/g5_modules
 
 # This switch toggles whether we preprocess the GEOS-CF data 
 # or use existing data
-set PREPROCESS_DATA = 0
+set PREPROCESS_DATA = 1
 
 # This will delete all previous output
 set CLEAN_PREV_OUTPUT = 0
@@ -33,19 +33,18 @@ set CLEAN_PREV_OUTPUT = 0
 # How many passes of the model to be run?
 # Make sure that the time period (end - start) in the 
 # geos_cf_yaml file is at least max_n_passes + 21 hrs
-set MAX_N_PASSES=2
+set MAX_N_PASSES=1
 
 #######################################################################
 #                 Create Experiment Sub-Directories
 #######################################################################
 
 set cur_dir = "${PWD}"
-set exp_name = test_one_mem
 
-set data_dir = "${cur_dir}/data/geos_cf/${exp_name}"
+set data_dir = "${cur_dir}/data"
 mkdir -p ${data_dir}
 #
-set exp_dir = "${cur_dir}/exp/${exp_name}"
+set exp_dir = "${cur_dir}/exp"
 mkdir -p ${exp_dir}
 
 #######################################################################
@@ -99,7 +98,7 @@ endif
 
 # input arguments
 set META_FILEPATH=${data_dir}/meta.pkl
-set CONFIG_FILEPATH="${SRC_DIR}/install/bin/tests/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
+set CONFIG_FILEPATH="${cur_dir}/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
 set VERTICAL_LEVEL=72
 
 set n_passes=1
