@@ -124,10 +124,14 @@ if __name__ == "__main__":
     # variable encoding
     encoding_dict = {"dtype": "float32", "zlib": True, "complevel": 3, '_FillValue':np.nan}
     
+    # Make aqcgan output folder if it doesn't exist
+    output_path = os.path.join(args.exp_dir,"aqcgan_predictions")
+    os.makedirs(output_path, exist_ok=True)
+
     # loop over fcst init times
     for ft in range(len(fcst_init_times)):
         ts = pd.Timestamp(fcst_init_times[ft]).strftime("%Y%m%d_%Hz")
-        save_file = f"{args.exp_dir}/aqcgan_predictions/{exp_name}.aqcgan_prediction.{ts}.nc4"
+        save_file = f"{output_path}/{exp_name}.aqcgan_prediction.{ts}.nc4"
 
         ds = xr.Dataset(
                 data_vars={
