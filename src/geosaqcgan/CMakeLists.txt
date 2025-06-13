@@ -11,7 +11,7 @@
   install(FILES ${scripts_files} DESTINATION lib/Python/NASA_AQcGAN/scripts)
   install(DIRECTORY shared DESTINATION lib/Python/NASA_AQcGAN)
   install(DIRECTORY configs DESTINATION etc/NASA_AQcGAN)
-#  install(FILES geos_dataset.py geosaqcgantrainer.py DESTINATION lib/Python/NASA_AQcGAN/)
+  install(FILES geos_dataset.py geosaqcgantrainer.py DESTINATION lib/Python/NASA_AQcGAN/)
 
 # Python executables
 # ------------------  

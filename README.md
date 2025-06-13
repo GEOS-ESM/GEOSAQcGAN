@@ -112,6 +112,13 @@ source ./cmake_it_prism
 make -j6 install
 ```
 
+### Create a run folder
+```
+cd ../install/bin
+./run_setup.py
+```
+Then follow instructions on the screen.
+
 ## Contributing
 
 Please check out our [contributing guidelines](CONTRIBUTING.md).

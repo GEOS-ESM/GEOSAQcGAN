@@ -14,7 +14,7 @@ import pandas as pd
 import pickle
 from typing import Union
 
-def read_yaml_file(file_name) -> Union[dict, None]:
+def read_yaml_file(file_name) -> dict | None:
     """
     Read a YAML file and returns it content as a dictionary.
     """

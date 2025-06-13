@@ -5,9 +5,9 @@
 #######################################################################
  
 #SBATCH -J geosaqcgan_fct
-#SBATCH --nodes=1
+#SBATCH --gpus=1
 #SBATCH --time=01:00:00
-#SBATCH -A @GROUPID
+##SBATCH -A @GROUPID
 #SBATCH -o output_geosaqcgan-%j.log
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
@@ -21,7 +21,8 @@
 setenv SRC_DIR @SRCDIR
 setenv PYTHONPATH ${SRC_DIR}/install/lib/Python
 
-source $SRC_DIR/env@/g5_modules
+module load anaconda
+conda activate torch
 
 # This switch toggles whether we preprocess the GEOS-CF data 
 # or use existing data
@@ -52,7 +53,7 @@ mkdir -p ${exp_dir}
 #######################################################################
 
 # AQcGAN model directory
-set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_march2025/
+set MODEL_ROOT=/explore/nobackup/people/pcastell/aist-cf/nasa_cgan_model_march2025/
 set CHKPT_IDX=150
 set MODEL_DIR="${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/${CHKPT_IDX}"
 
@@ -63,20 +64,22 @@ set NORM_STATS_FILENAME="${data_dir}/norm_stats.pkl"
 set geos_cf_yaml_fname="${cur_dir}/geos_cf_preproc_collections.yaml"  
 if ( $PREPROCESS_DATA == 1) then
 
-    # copy over model norm stats file
-    # it will be edited by the preprocess script
-    cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}                                
+# copy over model norm stats file
+# it will be edited by the preprocess script
+cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}                                
 
-    # run preprocess script                                                 
+# run preprocess script                                                 
     echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
         --norm_stats_file $NORM_STATS_FILENAME \
         --exp_dir $data_dir \
-        --geos_cf_yaml_file $geos_cf_yaml_fname"
+        --geos_cf_yaml_file $geos_cf_yaml_fname \
+        --validation_file"
     
     python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
         --norm_stats_file $NORM_STATS_FILENAME \
         --exp_dir $data_dir \
-        --geos_cf_yaml_file $geos_cf_yaml_fname
+        --geos_cf_yaml_file $geos_cf_yaml_fname \
+        --validation_file
 endif
 
 #######################################################################
@@ -96,7 +99,7 @@ endif
 
 # input arguments
 set META_FILEPATH=${data_dir}/meta.pkl
-set CONFIG_FILEPATH="${cur_dir}/config/forecast/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
+set CONFIG_FILEPATH="${cur_dir}/config/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
 set VERTICAL_LEVEL=72
 
 set n_passes=1
@@ -118,7 +121,7 @@ if ( ! -e ${data_dir}/val/1.npy || \
 endif
 
 if ( $CLEAN_PREV_OUTPUT == 1 ) then
-    rm -f ${exp_dir}/*aqcgan_predictions*.nc4
+    rm -f ${exp_dir}/aqcgan_predictions/*.nc4
 endif
 
 while ( $n_passes <= $MAX_N_PASSES )
@@ -129,16 +132,16 @@ while ( $n_passes <= $MAX_N_PASSES )
         --meta_filepath $META_FILEPATH \
         --n_passes $n_passes \
         --vertical_level $VERTICAL_LEVEL \
-        --mode fcst"
+        --mode val"
 
     python3 -m NASA_AQcGAN.inference.create_predictions \
-        --exp_dir ${exp_dir} \
+        --exp_dir ${exp_dir} \        
         --config_filepath $CONFIG_FILEPATH \
         --chkpt_idx $CHKPT_IDX \
         --meta_filepath $META_FILEPATH \
         --n_passes $n_passes \
         --vertical_level $VERTICAL_LEVEL \
-        --mode "fcst"
+        --mode "val"
         
     if ($? != 0) then
         echo "Error running the model! Exiting..."
@@ -148,8 +151,11 @@ while ( $n_passes <= $MAX_N_PASSES )
     endif
 end
 
-# This final step creates a file in exp called 
-# $expname.aqcgan_prediction.$startdate.nc4
+# This final step creates a file in exp/aqcgan_predictions called 
+# $expname.aqcgan_prediction.$fcstdate.nc4
 # This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 181, 360]
-# ntime - number of time series predicted.
+# If the file exists then it is appended with new data, but not overwritten.
+# ntime - number of time series predicted.  
+#         depends on the time interval of data provided to the model.  
+#         will be number of input timesteps minus 8 * n_passes
 # 181, 360 - lat, lon

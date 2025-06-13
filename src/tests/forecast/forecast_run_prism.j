@@ -72,14 +72,12 @@ cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}
     echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
         --norm_stats_file $NORM_STATS_FILENAME \
         --exp_dir $data_dir \
-        --geos_cf_yaml_file $geos_cf_yaml_fname \
-        --validation_file"
+        --geos_cf_yaml_file $geos_cf_yaml_fname"
     
     python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
         --norm_stats_file $NORM_STATS_FILENAME \
         --exp_dir $data_dir \
-        --geos_cf_yaml_file $geos_cf_yaml_fname \
-        --validation_file
+        --geos_cf_yaml_file $geos_cf_yaml_fname
 endif
 
 #######################################################################
@@ -99,7 +97,7 @@ endif
 
 # input arguments
 set META_FILEPATH=${data_dir}/meta.pkl
-set CONFIG_FILEPATH="${cur_dir}/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
+set CONFIG_FILEPATH="${cur_dir}/config/forecast/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
 set VERTICAL_LEVEL=72
 
 set n_passes=1
@@ -121,23 +119,28 @@ if ( ! -e ${data_dir}/val/1.npy || \
 endif
 
 if ( $CLEAN_PREV_OUTPUT == 1 ) then
-    rm -f ${exp_dir}/aqcgan_predictions/*.nc4
+    rm -f ${exp_dir}/*aqcgan_predictions*.nc4
 endif
 
 while ( $n_passes <= $MAX_N_PASSES )
     echo "python3 -m NASA_AQcGAN.inference.create_predictions \
+        --exp_dir ${exp_dir} \
         --config_filepath $CONFIG_FILEPATH \
         --chkpt_idx $CHKPT_IDX \
         --meta_filepath $META_FILEPATH \
         --n_passes $n_passes \
-        --vertical_level $VERTICAL_LEVEL"
+        --vertical_level $VERTICAL_LEVEL \
+        --mode fcst"
 
     python3 -m NASA_AQcGAN.inference.create_predictions \
+        --exp_dir ${exp_dir} \
         --config_filepath $CONFIG_FILEPATH \
         --chkpt_idx $CHKPT_IDX \
         --meta_filepath $META_FILEPATH \
         --n_passes $n_passes \
-        --vertical_level $VERTICAL_LEVEL
+        --vertical_level $VERTICAL_LEVEL \
+        --mode "fcst"
+        
     if ($? != 0) then
         echo "Error running the model! Exiting..."
         exit(1)
@@ -146,11 +149,8 @@ while ( $n_passes <= $MAX_N_PASSES )
     endif
 end
 
-# This final step creates a file in exp/aqcgan_predictions called 
-# $expname.aqcgan_prediction.$fcstdate.nc4
+# This final step creates a file in exp called 
+# $expname.aqcgan_prediction.$startdate.nc4
 # This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 181, 360]
-# If the file exists then it is appended with new data, but not overwritten.
 # ntime - number of time series predicted.  
-#         depends on the time interval of data provided to the model.  
-#         will be number of input timesteps minus 8 * n_passes
 # 181, 360 - lat, lon

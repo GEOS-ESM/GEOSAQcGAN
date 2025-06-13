@@ -33,6 +33,7 @@ from .utils import get_norm_stats
 from ..shared.aqcgan_utils import get_predictions
 from ..shared.aqcgan_utils import inv_pred
 from ..train_ens_ic import parse_yaml
+from ..shared.aqcgan_utils import parse_yaml_prediction
 
 DEVICE = 0 if torch.cuda.is_available() else "cpu"
 
@@ -44,12 +45,25 @@ if __name__ == "__main__":
     parser.add_argument("--meta_filepath", type=str, help="Full path to the Pickle file containing experiment data.")
     parser.add_argument("--n_passes", "-n", type=int, default=1, help="Number of forward passes to run.")
     parser.add_argument("--vertical_level", type=int, default=72, help="Vertical level to evaluate on")
+    parser.add_argument("--mode", type=str, default="val", help="Mode to the run the model in")
     args = parser.parse_args()
 
     # load trained AQcGAN model
     config_filepath = Path(args.config_filepath)
-    trainer = parse_yaml(Path(""),config_filepath, args.chkpt_idx, device=DEVICE)
-    trainer.gen.eval()
+    if args.mode == "val":
+        print("Running AQcGAN in validation mode")
+        trainer = parse_yaml(Path(""),config_filepath, args.chkpt_idx, device=DEVICE)
+        trainer.gen.eval()
+    elif args.mode == "fcst":
+        print("Running AQcGAN in forecast mode")
+        trainer = parse_yaml_prediction(config_filepath, args.chkpt_idx, device=DEVICE)
+        trainer.gen.eval()
+        if args.n_passes > 1:
+            print("Warning: n_passes > 1 may not work in the fcst mode")
+    else:
+        print("Run mode needs to be either forecast or eval for now. This will include train once tested")
+        sys.exit(1)
+        
 
     # get meta data
     meta_data = read_pickle_file(args.meta_filepath)
@@ -98,62 +112,93 @@ if __name__ == "__main__":
 
     # invert mean and spread to get mean and std deviation in native space
     predictions_inv = inv_pred(predictions.numpy(), mu, sigma)
+    if args.mode == "val":
+        # save predictions as nc4 files
+        # filename has the form {exp_name}.aqcgan_prediction.{fcst init time}.nc4
+        # fcst init time is the last timestamp of the GEOS species (only) data 
+        # used for the forecast.
+        # So if we use the data for 20230401 (0z-21z) as the initial condition, 
+        # then the fcst init time is 20240402_21z
+        exp_name = meta_data['exp_name']
+        times =  meta_data['time_init']
 
-    # save predictions as nc4 files
-    # filename has the form {exp_name}.aqcgan_prediction.{fcst init time}.nc4
-    # fcst init time is the last timestamp of the GEOS species (only) data 
-    # used for the forecast.
-    # So if we use the data for 20230401 (0z-21z) as the initial condition, 
-    # then the fcst init time is 20240402_21z
-    exp_name = meta_data['exp_name']
-    times =  meta_data['time_init']
+        window_size = dataset.window_size
+        time_span   = dataset.n_timesteps - dataset.window_size*(args.n_passes + 1) + 1
+        # this is the last time of the GEOS-CF composition data used for a forecast
+        fcst_init_times = times[window_size-1:
+                                dataset.n_timesteps-window_size*args.n_passes]
+        
+        # Forecast lead times for the 8 n_frames
+        fcst_lead_times = np.arange( 3 * window_size*(args.n_passes - 1) + 3,
+                                    3 * window_size*args.n_passes + 3, 
+                                    3, 
+                                    dtype='timedelta64[h]' )
 
-    window_size = dataset.window_size
-    time_span   = dataset.n_timesteps - dataset.window_size*(args.n_passes + 1) + 1
-    # this is the last time of the GEOS-CF composition data used for a forecast
-    fcst_init_times = times[window_size-1:
-                            dataset.n_timesteps-window_size*args.n_passes]
+
+        # variable encoding
+        encoding_dict = {"dtype": "float32", "zlib": True, "complevel": 3, '_FillValue':np.nan}
+        
+        # Make aqcgan output folder if it doesn't exist
+        output_path = os.path.join(args.exp_dir,"aqcgan_predictions")
+        os.makedirs(output_path, exist_ok=True)
+
+        # loop over fcst init times
+        for ft in range(len(fcst_init_times)):
+            ts = pd.Timestamp(fcst_init_times[ft]).strftime("%Y%m%d_%Hz")
+            save_file = f"{output_path}/{exp_name}.aqcgan_prediction.{ts}.nc4"
+
+            ds = xr.Dataset(
+                    data_vars={
+                        **{var_name: (['time','lat','lon'], predictions_inv[ft,i,:,:,:]) 
+                        for i, var_name in enumerate(dataset.target_names[args.vertical_level])
+                        },
+                        'fcst_lead_time': (['time'], fcst_lead_times )
+                        },
+                    coords= {
+                        'time': fcst_init_times[ft] + fcst_lead_times,
+                        'lat': meta_data['lat'],
+                        'lon': meta_data['lon'],
+                        }
+                    )
+        
+            ds.attrs['title'] = 'AQcGAN predictions'
+        
+            if os.path.exists(trainer.chkpt_dir / save_file):
+                print(f'Appending {save_file}')
+                with xr.open_dataset( trainer.chkpt_dir / save_file, 
+                                    decode_timedelta=True ) as ds_prev: 
+                    ds = ds_prev.combine_first(ds)
+        
+            ds.to_netcdf(trainer.chkpt_dir / save_file, engine='h5netcdf', mode="w", 
+                            encoding={var: encoding_dict for var in ds.data_vars})
     
-    # Forecast lead times for the 8 n_frames
-    fcst_lead_times = np.arange( 3 * window_size*(args.n_passes - 1) + 3,
-                                 3 * window_size*args.n_passes + 3, 
-                                 3, 
-                                 dtype='timedelta64[h]' )
+    else:
+        # get outfile name
+        ts = str(meta_data['time_init'][0])[:13]
+        dt = meta_data['time_init'][1] - meta_data['time_init'][0]
+        dt = dt.astype('timedelta64[h]').astype(int)
+        exp_name = meta_data['exp_name']
+        save_file = f"{exp_name}.aqcgan_prediction.{ts}.nc4"
 
-
-    # variable encoding
-    encoding_dict = {"dtype": "float32", "zlib": True, "complevel": 3, '_FillValue':np.nan}
-    
-    # Make aqcgan output folder if it doesn't exist
-    output_path = os.path.join(args.exp_dir,"aqcgan_predictions")
-    os.makedirs(output_path, exist_ok=True)
-
-    # loop over fcst init times
-    for ft in range(len(fcst_init_times)):
-        ts = pd.Timestamp(fcst_init_times[ft]).strftime("%Y%m%d_%Hz")
-        save_file = f"{output_path}/{exp_name}.aqcgan_prediction.{ts}.nc4"
-
-        ds = xr.Dataset(
-                data_vars={
-                    **{var_name: (['time','lat','lon'], predictions_inv[ft,i,:,:,:]) 
-                    for i, var_name in enumerate(dataset.target_names[args.vertical_level])
-                    },
-                    'fcst_lead_time': (['time'], fcst_lead_times )
-                    },
-                coords= {
-                    'time': fcst_init_times[ft] + fcst_lead_times,
-                    'lat': meta_data['lat'],
-                    'lon': meta_data['lon'],
-                    }
-                )
-    
-        ds.attrs['title'] = 'AQcGAN predictions'
-    
         if os.path.exists(trainer.chkpt_dir / save_file):
-            print(f'Appending {save_file}')
-            with xr.open_dataset( trainer.chkpt_dir / save_file, 
-                                  decode_timedelta=True ) as ds_prev: 
-                ds = ds_prev.combine_first(ds)
-    
-        ds.to_netcdf(trainer.chkpt_dir / save_file, engine='h5netcdf', mode="w", 
-                        encoding={var: encoding_dict for var in ds.data_vars})
+            print(f'{save_file} already exists! Skipping')
+            exit()
+            
+        ds = xr.Dataset(
+        data_vars={
+            'CO':  (['time', 'hour', 'lat', 'lon'], predictions_inv[:,0,:,:,:]),
+            'NO':  (['time', 'hour', 'lat', 'lon'], predictions_inv[:,1,:,:,:]),
+            'NO2': (['time', 'hour', 'lat', 'lon'], predictions_inv[:,2,:,:,:]),
+            'O3':  (['time', 'hour', 'lat', 'lon'], predictions_inv[:,3,:,:,:])
+
+        },
+        coords={
+            'time': meta_data['time_init'][0:dataset.time_span],
+            'hour': range(dataset.window_size)*dt,
+            'lat': meta_data['lat'],
+            'lon': meta_data['lon']
+        }
+    )
+
+        ds.attrs['title'] = 'AQcGAN predictions'
+        ds.to_netcdf(trainer.chkpt_dir / save_file,engine='netcdf4')
