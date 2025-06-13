@@ -132,7 +132,15 @@ def create_experiment_directory():
         print(f"You can change the group id in the SLURM script available in the experiment directory")
         print()
 
-    loc_filename = "forecast_run.j"
+    print()
+    dsystem = 'discover'
+    system = input(f"Provide the system you are running on (options: discover, prism) (default: {dsystem}): ")
+    system = system.strip()
+    
+    if not system:
+        system = dsystem
+
+    loc_filename = f"forecast_run_{system}.j"
     target_dir = experiment_directory
     dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
     search_reaplace_in_file(loc_filename, target_dir, dict_words)
