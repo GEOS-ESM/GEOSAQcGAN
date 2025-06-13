@@ -1,8 +1,16 @@
 
 """
+Helper utility functions for running AQcGAN in with GEOS 
+in an single member (non-ensemble) mode
 """
+import numpy as np
+import torch
+
+from ..train_ens_ic import AQcGANTrainer
+from ..inference.utils import collate
+
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 import numpy as np
 
 import torch
@@ -13,13 +21,14 @@ from AQcGAN.utils import GANArchitecture, TrainHyperParams, DiffusionParams
 
 from .gen_utils import read_yaml_file
 
-def get_predictions(trainer: GEOSAQcGANFCast,
-                             n_passes: int = 1) -> tuple[torch.Tensor, torch.Tensor]:
+def get_predictions(trainer: AQcGANTrainer | GEOSAQcGANFCast, 
+                    n_passes: int = 1) -> torch.Tensor:
+
     """
     Generates mean and spread predictions for an ensemble dataset.
 
     Parameters:
-        trainer (AQcGANTrainer): AQcGANTrainer object
+        trainer (AQcGANTrainer or GEOSAQcGANFcast): Trainer object
         n_passes (int): Number of time sequences the "prediction" is ahead of the input.
                         Used for autoregressive results farther out (e.g. 10 days)
 
@@ -31,7 +40,7 @@ def get_predictions(trainer: GEOSAQcGANFCast,
     return prediction
 
 def get_pred(aqcgantrainer,
-        n_passes: int = 1) -> tuple[torch.Tensor, torch.Tensor]:
+        n_passes: int = 1) -> torch.Tensor:
     """
     Get AQcGAN predictions
 
@@ -48,7 +57,6 @@ def get_pred(aqcgantrainer,
     # update time_span depending on number of forward passes
     # (latest starting timestep we can get prediction for `n_passes` ahead and have ground
     #  truth to compare to)
-    # PC - right now we're only doing 1 pass so doesn't matter. Would need to be modified to support forecasting
     time_span = dataset.time_span - (dataset.n_frames*dataset.step_size)*(n_passes - 1)
 
     # update step size
@@ -94,11 +102,14 @@ def get_pred(aqcgantrainer,
                 x_pred = dataset.diff_operator.invert_difference(prior, x_pred)
 
         # get mean and spread (variance) of predictions across ensemble members at given timestep
-        predictions.append(x_pred.mean(dim=0))
+        if x_pred is not None:
+            predictions.append(x_pred.mean(dim=0))
 
     return torch.stack(predictions, dim=0)
 
-def inv_pred(prediction: np.ndarray, mu: np.ndarray, sigma: np.ndarray):
+def inv_pred(prediction: np.ndarray, 
+             mu: np.ndarray, 
+             sigma: np.ndarray) -> np.ndarray :
     """
     Takes predicted values in normalized
     space and converts them back to their native units
@@ -118,12 +129,11 @@ def inv_pred(prediction: np.ndarray, mu: np.ndarray, sigma: np.ndarray):
     prediction = prediction * sigma + mu
     return prediction
 
-
 def parse_yaml_prediction(yaml_file: Path,
         chkpt_idx: Optional[int] = None,
         device: Optional[int] = None) -> GEOSAQcGANFCast:
     """
-    Use a config file to initialize an AQcGANTrainer object 
+    Use a config file to initialize an GEOSAQcGANFCast trainer object 
     and a corresponding dataset.
 
     Parameters
@@ -145,32 +155,35 @@ def parse_yaml_prediction(yaml_file: Path,
 
     config = read_yaml_file(yaml_file)
 
-    # gan architecture
-    gan_architecture = GANArchitecture(**config["aqcgan"])
-
-    # data params
-    data_params = config["data"]
-    config["data"]["data_dir"] = Path(data_params["data_dir"])
-     
-    # train_hyperparams
-    train_hyperparams = TrainHyperParams(**config["train"])
-     
-    # device
-    if not device:
-        device = config["device"]
-     
-    if "diffusion" in config:
-        diffusion_params = DiffusionParams(**config["diffusion"])
+    if config is None:
+        print(f"Cannot read ${yaml_file}")
+        exit(1)
     else:
-        diffusion_params = DiffusionParams(use=False, 
-                                           noise_steps=10, 
-                                           beta_start=0., beta_end=1.)
-     
-    trainer = GEOSAQcGANFCast(gan_architecture, data_params, 
-                            train_hyperparams, device, 
-                            Path(config["chkpt_dir"]), 
-                            diffusion_params=diffusion_params, 
-                            chkpt_idx=chkpt_idx)  
+        # gan architecture
+        gan_architecture = GANArchitecture(**config["aqcgan"])
 
-    return trainer
+        # data params
+        data_params = config["data"]
+        config["data"]["data_dir"] = Path(data_params["data_dir"])
+        
+        # train_hyperparams
+        train_hyperparams = TrainHyperParams(**config["train"])
+        
+        # device
+        if not device:
+            device = config["device"]
+        
+        if "diffusion" in config:
+            diffusion_params = DiffusionParams(**config["diffusion"])
+        else:
+            diffusion_params = DiffusionParams(use=False, 
+                                            noise_steps=10, 
+                                            beta_start=0., beta_end=1.)
+        
+        trainer = GEOSAQcGANFCast(gan_architecture, data_params, 
+                                train_hyperparams, device, 
+                                Path(config["chkpt_dir"]), 
+                                diffusion_params=diffusion_params, 
+                                chkpt_idx=chkpt_idx)  
 
+        return trainer

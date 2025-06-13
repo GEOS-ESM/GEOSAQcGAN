@@ -43,7 +43,7 @@ data:
       - SpeciesConc_NO2_72
       - SpeciesConc_O3_72
 
-  data_dir: data/geos_cf/test_one_mem
+  data_dir: data
   train_member_idxs:
     - 7
     - 28
@@ -95,4 +95,4 @@ train:
 
 device: 0
 
-chkpt_dir: exp/test_one_mem
+chkpt_dir: exp

@@ -8,10 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Option to write validation file during preprocessing
+- Option to create predictions in either validation (`val`) or forecast (`fcst`) mode
 
 ### Changed
+- Improvments to the run script
+- Change output filenames and location
+- Use flags instead of positional arguments to avoid errors
+- Copy AQcGAN yaml files to the experiment folder so we can make changes specific to the experiment
+- General cleanup & streamlining of code
 
 ### Fixed
+- Bug fix to mean and std dev saved in norm_stats
 
 ### Removed
 
@@ -22,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - tests directory to run a single inference test
 - cmake rules to install JHU repos
-- goes specific preprocess script
+- geos specific preprocess script
 - forecast test directory that excercises new goesaqcgan codes
 - write outputs to netcdf file
 - add setup script for forecast test
