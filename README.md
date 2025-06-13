@@ -27,6 +27,15 @@ part of running `module avail` but if not, they are in:
 module use -a /ford1/share/gmao_SIteam/modulefiles
 ```
 
+#### PRISM
+On the PRISM GPU system
+
+```
+ml use -a /home/mathomp4/modulefiles
+ml mepo
+```
+
+#### On NCCS, NAS, or GMAO Desktops
 Also do this in any interactive window you have. This allows you to get module files needed to correctly checkout and build the model.
 
 Now load the `GEOSenv` module:
@@ -52,6 +61,8 @@ mepo config set clone.partial blobless
 This is a one-time command that tells mepo to use blobless clones for all future clones. Blobless clones are much faster than the default clone method, especially for repositories with a large history like MAPL.
 
 ### Build the Model
+#### For PRISM
+Skip this and see instructions below
 
 #### Load Compiler, MPI Stack, and Baselibs
 On tcsh:
@@ -89,6 +100,14 @@ cd build
 The advantages of this is that you can build both a Debug and Release version with the same clone if desired.
 
 #### Build and Install with Make
+```
+make -j6 install
+```
+
+#### PRISM Instructions
+```
+source ./cmake_it_prism
+```
 ```
 make -j6 install
 ```
