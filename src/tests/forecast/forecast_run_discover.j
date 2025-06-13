@@ -145,7 +145,7 @@ while ( $n_passes <= $MAX_N_PASSES )
     endif
 end
 
-# This final step creates a file in exp/test_one_mem/aqcgan_predictions called 
+# This final step creates a file in exp/aqcgan_predictions called 
 # $expname.aqcgan_prediction.$fcstdate.nc4
 # This contains 4 variables (CO,  NO, NO2, O3) that have shape [ntime, 181, 360]
 # If the file exists then it is appended with new data, but not overwritten.
