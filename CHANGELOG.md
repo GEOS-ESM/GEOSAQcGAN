@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
 
+### Changed
+
+### Fixes
+
+### Removed
+
+### Deprecated
+
+## [v1.1.0] 08-20-2025
 ### Added
 - Option to write validation file during preprocessing
 - Option to create predictions in either validation (`val`) or forecast (`fcst`) mode
@@ -20,10 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Bug fix to mean and std dev saved in norm_stats
-
-### Removed
-
-### Deprecated
 
 ## [v1.0,0] 05-16-2025
 
