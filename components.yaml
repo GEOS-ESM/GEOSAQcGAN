@@ -23,12 +23,11 @@ AQcGAN:
   local: ./src/Shared/JHU_Shared/AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/AQcGAN
   develop: main
-  branch: main
+  tag: v2.1.1
 
 NASA-AQcGAN:
   local: ./src/Shared/JHU_Shared/NASA-AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
   develop: main
-#  branch: main
-  branch: feature/pcastell/use_relative_imports
+  tag: v2.1.0
 
