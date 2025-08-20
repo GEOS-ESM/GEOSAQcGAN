@@ -15,6 +15,7 @@
 from pathlib import Path
 import sys
 import os
+import glob
 import subprocess
 import shutil
 
@@ -108,6 +109,14 @@ def create_experiment_directory():
     config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
     shutil.copy(config_filepath, experiment_directory / config_filepath.name)
 
+    # Copy the AQcGAN YAML configuration files to the experiment directory.
+    for root, _, files in os.walk("tests"):
+        for file in [f for f in files if f.endswith(('.yaml', '.yml'))]:
+            src = Path(root) / file
+            dst = Path(experiment_directory / "config") / src.relative_to("./tests")
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+
     # Get the sponsor code id
 
     result = subprocess.run(["groups"], shell=True, capture_output=True, text=True)
@@ -132,19 +141,33 @@ def create_experiment_directory():
         print(f"You can change the group id in the SLURM script available in the experiment directory")
         print()
 
-    loc_filename = "forecast_run.j"
+    print()
+    dsystem = 'discover'
+    system = input(f"Provide the system you are running on (options: discover, prism) (default: {dsystem}): ")
+    system = system.strip()
+    
+    if not system:
+        system = dsystem
+
+    loc_filename_fcst = f"forecast_run_{system}.j"
     target_dir = experiment_directory
     dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
-    search_reaplace_in_file(loc_filename, target_dir, dict_words)
+    search_reaplace_in_file(loc_filename_fcst, target_dir, dict_words)
+
+    loc_filename_val = f"validation_run_{system}.j"
+    target_dir = experiment_directory
+    dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
+    search_reaplace_in_file(loc_filename_val, target_dir, dict_words)
 
     print()
     print("-"*70)
     print(f"The experiment directory was created: \n\n\t {experiment_directory}")
     print()
-    print(f"Go to the folder and if necessary edit the file {loc_filename}.")
+    print(f"Go to the folder and if necessary edit the file {loc_filename_fcst} ")
+    print(f"or {loc_filename_val}, depending on your run mode.")
     print()
     print("From the experiment directory, issue the command: ")
-    print(f"   sbatch {loc_filename}")
+    print(f"   sbatch {loc_filename_fcst} or sbatch {loc_filename_val}")
     print("-"*70)
     print()
 
