@@ -45,39 +45,13 @@ data:
 
   data_dir: data
   train_member_idxs:
-    - 7
-    - 28
-    - 12
-    - 17
-    - 29
-    - 3
     - 1
-    - 25
-    - 20
-    - 19
-    - 24
-    - 23
-    - 22
-    - 15
-    - 8
-    - 26
-    - 21
-    - 5
-    - 9
 
   val_member_idxs:
     - 1
 
   test_member_idxs:
-    - 14
-    - 30
-    - 13
-    - 4
-    - 32
-    - 10
-    - 2
-    - 6
-    - 27
+    - 1
 
   n_frames: 8
   step_size: 1
