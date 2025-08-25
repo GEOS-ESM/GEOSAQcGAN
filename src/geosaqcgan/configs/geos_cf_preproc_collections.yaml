@@ -24,7 +24,7 @@ end_date: 20230711_21z
 #            If dealing with surface fields, set it to -1.
 collection:
   gcc_2dx_ll:
-    data_dir: /discover/nobackup/projects/gmao/geos_cf_dev/pawales/aist-cf/experiments/CF2_c90_replay/holding/gcc_2dx_ll
+    data_dir: /discover/nobackup/projects/gmao/aist-cf/pawales/experiments/CF2_c90_replay/holding/gcc_2dx_ll
     file_prefix: CF2_c90_replay.gcc_2dx_ll
     fields: ['CLDTT', 'EMIS_CO', 'EMIS_NO', 'EMIS_NO2', 'Met_SUNCOSmid', 'PHIS', 'TPREC', 'PS', 'SLP', 'T2M', 'TQV', 'U10M', 'V10M', 'ZPBL']
     fields_map: ['CLDTT', 'EMIS_CO', 'EMIS_NO', 'EMIS_NO2', 'Met_SUNCOSmid', 'PHIS', 'PRECTOT', 'PS', 'SLP', 'T2M', 'TQV', 'U10M', 'V10M', 'ZPBL']

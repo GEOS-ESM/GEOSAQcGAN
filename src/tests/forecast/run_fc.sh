@@ -14,7 +14,7 @@ source $HOME_DIR/env@/g5_modules
 set cur_dir = "${PWD}"
 
 # AQcGAN model directory
-set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_march2025/
+set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_aug2025_v2.1.1/
 set CHKPT_IDX=150
 #set MODEL_DIR=${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/${CHKPT_IDX}
 set MODEL_DIR=/discover/nobackup/projects/gmao/aist-cf/merged_aqcgan_inputs/checkpoint/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/150

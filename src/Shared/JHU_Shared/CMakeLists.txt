@@ -23,6 +23,7 @@ install (
 
 
 set (PYSCRIPTS
+    NASA-AQcGAN@/constants.py
     NASA-AQcGAN@/dataset.py
     NASA-AQcGAN@/main_ens_ic.py
     NASA-AQcGAN@/train_ens_ic.py

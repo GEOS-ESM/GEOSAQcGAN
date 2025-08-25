@@ -53,7 +53,7 @@ mkdir -p ${exp_dir}
 #######################################################################
 
 # AQcGAN model directory
-set MODEL_ROOT=/explore/nobackup/people/pcastell/aist-cf/nasa_cgan_model_march2025/
+set MODEL_ROOT=/explore/nobackup/people/pcastell/aist-cf/nasa_cgan_model_aug2025_v2.1.1/
 set CHKPT_IDX=150
 set MODEL_DIR="${MODEL_ROOT}/projects/NOAA/climate-fast/ribaucj1/exp/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9/${CHKPT_IDX}"
 
@@ -75,11 +75,7 @@ cp ${MODEL_ROOT}/norm_stats.pkl ${data_dir}
         --geos_cf_yaml_file $geos_cf_yaml_fname \
         --validation_file"
     
-    python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
-        --norm_stats_file $NORM_STATS_FILENAME \
-        --exp_dir $data_dir \
-        --geos_cf_yaml_file $geos_cf_yaml_fname \
-        --validation_file
+    python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf --norm_stats_file $NORM_STATS_FILENAME --exp_dir $data_dir --geos_cf_yaml_file $geos_cf_yaml_fname --validation_file
 endif
 
 #######################################################################
