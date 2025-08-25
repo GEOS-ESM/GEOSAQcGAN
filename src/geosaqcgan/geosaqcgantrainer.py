@@ -17,7 +17,9 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader, RandomSampler
 
 from AQcGAN.utils import GANArchitecture, TrainHyperParams, DiffusionParams, Metrics
-from AQcGAN.models import Generator, Discriminator
+from AQcGAN.models import UNetGenerator 
+from AQcGAN.models import WNetGenerator 
+from AQcGAN.models import Discriminator
 from AQcGAN.datasets import DifferenceDataset
 from .geos_dataset import GEOSCFLargeDataset
 from .train_ens_ic import AQcGANTrainer
@@ -53,7 +55,16 @@ class GEOSAQcGANFCast(AQcGANTrainer):
         self.device = torch.device(f"cuda:{device}" if isinstance(device, int) else device)
 
         # set up models
-        self.gen = Generator(**gan_architecture.get_gen_kwargs()).to(device)
+        #self.gen = Generator(**gan_architecture.get_gen_kwargs()).to(device)
+        gan_kwargs = gan_architecture.get_gen_kwargs()
+        generator_class = gan_kwargs.pop("generator_class", "UNet")
+        generator = {"UNet": UNetGenerator, "WNet": WNetGenerator}[generator_class]
+        if generator_class == "UNet":
+            try: 
+                del gan_kwargs["in_future_channels"]  # UNet does not use in_future_channels
+            except:
+                pass
+        self.gen = generator(**gan_kwargs).to(device)
         self.disc = Discriminator(**gan_architecture.get_disc_kwargs()).to(device)
 
         # extract dataset class from config

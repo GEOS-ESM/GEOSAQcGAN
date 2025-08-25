@@ -8,7 +8,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=01:00:00
 #SBATCH -A @GROUPID
-#SBATCH -o output_geosaqcgan-%j.log
+#SBATCH -o output_geosaqcgan_val-%j.log
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #
