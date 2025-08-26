@@ -32,7 +32,7 @@ collection:
 
 
   gcc_3dx_l:
-    data_dir: /discover/nobackup/projects/gmao/geos_cf_dev/pawales/aist-cf/experiments/CF2_c90_replay/holding/gcc_3dx_ll
+    data_dir: /discover/nobackup/projects/gmao/aist-cf/pawales/experiments/CF2_c90_replay/holding/gcc_3dx_ll
     file_prefix: CF2_c90_replay.gcc_3dx_ll
     fields: ['O3', 'CO', 'NO', 'NO2', 'Met_OPTD']
     fields_map: ['SpeciesConc_O3', 'SpeciesConc_CO', 'SpeciesConc_NO', 'SpeciesConc_NO2', 'Met_OPTD']
