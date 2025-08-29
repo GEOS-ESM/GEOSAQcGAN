@@ -5,12 +5,14 @@ aqcgan:
   h: 181
   w: 360
   in_channels: 23
+  in_future_channels: 15
   out_channels: 4
   alpha: 0.2
   p_dropout: 0.2
   use_half: false
   debug: false
   use_lstm: false
+  generator_class: WNet
 
 data:
   class: Large
@@ -44,6 +46,7 @@ data:
       - SpeciesConc_O3_72
 
   data_dir: data
+
   train_member_idxs:
     - 1
 
@@ -53,19 +56,46 @@ data:
   test_member_idxs:
     - 1
 
+  transformations:
+    CLDTT: "standardization"
+    EMIS_CO: "standardization"
+    EMIS_NO: "standardization"
+    EMIS_NO2: "standardization"
+    Met_OPTD_72: "standardization"
+    Met_SUNCOSmid: "standardization"
+    PHIS: "standardization"
+    PRECTOT: "standardization"
+    PS: "standardization"
+    SLP: "standardization"
+    SpeciesConc_CO_72: "standardization"
+    SpeciesConc_NO_72: "standardization"
+    SpeciesConc_NO2_72: "standardization"
+    SpeciesConc_O3_72: "standardization"
+    T2M: "standardization"
+    TQV: "standardization"
+    U10M: "standardization"
+    V10M: "standardization"
+    ZPBL: "standardization"
+
   n_frames: 8
   step_size: 1
-  use_future_feats: false
+  use_future_feats: true
   use_time: true
   use_latlon: false
   difference: "none"
 
 train:
-  batch_size: 64
+  batch_size: 16
   lr: 0.0002
   beta_1: 0.5
   eval_freq: 10
   chkpt_freq: 10
+
+diffusion:
+  use: true
+  noise_steps: 1000
+  beta_start: 0.0004
+  beta_end: 0.02
 
 device: 0
 

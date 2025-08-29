@@ -6,7 +6,7 @@
  
 #SBATCH -J geosaqcgan_fct
 #SBATCH --nodes=1
-#SBATCH --time=01:00:00
+#SBATCH --time=00:30:00
 #SBATCH -A @GROUPID
 #SBATCH -o output_geosaqcgan_val-%j.log
 #SBATCH --mail-type=BEGIN
@@ -39,12 +39,12 @@ set MAX_N_PASSES=1
 #                 Create Experiment Sub-Directories
 #######################################################################
 
-set cur_dir = "${PWD}"
+set CUR_DIR = "${PWD}"
 
-set DATA_DIR = "${cur_dir}/data"
+set DATA_DIR = "${CUR_DIR}/data"
 mkdir -p ${DATA_DIR}
 #
-set EXP_DIR = "${cur_dir}/exp"
+set EXP_DIR = "${CUR_DIR}/exp"
 mkdir -p ${EXP_DIR}
 
 #######################################################################
@@ -60,7 +60,7 @@ set MODEL_DIR="${MODEL_ROOT}/${CHKPT_IDX}"
 #                   STEP 1: Preprocess Data
 #######################################################################
 set NORM_STATS_FILENAME="${DATA_DIR}/norm_stats.pkl"                        
-set geos_cf_yaml_fname="${cur_dir}/geos_cf_preproc_collections.yaml"  
+set geos_cf_yaml_fname="${CUR_DIR}/geos_cf_preproc_collections.yaml"  
 if ( $PREPROCESS_DATA == 1) then
 
     # copy over model norm stats file
@@ -68,13 +68,12 @@ if ( $PREPROCESS_DATA == 1) then
     cp ${MODEL_ROOT}/norm_stats.pkl ${DATA_DIR}                                
 
     # run preprocess script                                                 
-    echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf \
-        --norm_stats_file $NORM_STATS_FILENAME \
-        --exp_dir $DATA_DIR \
-        --geos_cf_yaml_file $geos_cf_yaml_fname \
-        --validation_file"
-    
-    python3 -im NASA_AQcGAN.scripts.preprocess_geos_cf --norm_stats_file $NORM_STATS_FILENAME --exp_dir $DATA_DIR --geos_cf_yaml_file $geos_cf_yaml_fname --validation_file
+    set PRE_ARGS = "--norm_stats_file $NORM_STATS_FILENAME --exp_dir $DATA_DIR --geos_cf_yaml_file $geos_cf_yaml_fname --validation_file"
+
+    echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $PRE_ARGS"
+                                                                  
+    python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $PRE_ARGS
+
 endif
 
 #######################################################################
@@ -95,7 +94,7 @@ endif
 
 # input arguments
 set META_FILEPATH=${DATA_DIR}/meta.pkl
-set CONFIG_FILEPATH="${cur_dir}/config/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
+set CONFIG_FILEPATH="${CUR_DIR}/config/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
 set VERTICAL_LEVEL=72
 
 set n_passes=1
@@ -129,17 +128,12 @@ if ( $CLEAN_PREV_OUTPUT == 1 ) then
 endif
 
 while ( $n_passes <= $MAX_N_PASSES )
-    echo "python3 -im NASA_AQcGAN.inference.create_ensemble_predictions \
-        $CONFIG_FILEPATH \
-        $CHKPT_IDX \
-        ${DATA_DIR} \
-        --split $SPLIT \
-        --n_passes $n_passes \
-        --vertical_level $VERTICAL_LEVEL \
-        --is_pred"
-
-    set SPLIT  = "val"
-    python3 -im NASA_AQcGAN.inference.create_ensemble_predictions  $CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --is_pred
+    set SPLIT  = "val"                           
+    set VAL_ARGS = "$CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --is_pred"
+              
+    echo "python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS"
+              
+    python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS
 
     if ($? != 0) then
         echo "Error running the model! Exiting..."
