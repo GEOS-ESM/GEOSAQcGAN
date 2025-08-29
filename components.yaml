@@ -28,6 +28,6 @@ AQcGAN:
 NASA-AQcGAN:
   local: ./src/Shared/JHU_Shared/NASA-AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
-  develop: jk_use_relative_import
-  tag: v2.1.0
+  develop: main
+  tag: jk_use_relative_import
 
