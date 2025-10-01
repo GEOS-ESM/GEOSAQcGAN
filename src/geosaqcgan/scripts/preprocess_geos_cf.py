@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 import pandas as pd
-
+import yaml
 from .read_geos_cf_datafiles import obtain_geos_cf_fields
 from ..shared.gen_utils import read_pickle_file
 
@@ -42,29 +42,13 @@ if __name__ == "__main__":
     parser.add_argument("--norm_stats_file", type=str, help="Name of norm stats file.")
     parser.add_argument("--exp_dir", type=str, help="Data directory for experiment.")
     parser.add_argument("--geos_cf_yaml_file", type=str, help="Full path to the YAML file containing setting parameters.")
-    parser.add_argument("--validation_file", action="store_true", help="Whether to write validation file or not")
+    parser.add_argument("--aqcgan_config_file", type=str, help="Full path to the YAML file containing AQcGAN expt settings")
+    parser.add_argument("--level", type=int, help="vertical level")
 
     args = parser.parse_args()
 
     print("Reading in data...")
     m_dict = obtain_geos_cf_fields(args.geos_cf_yaml_file)
-
-    if ( args.validation_file ):
-        # Save data for validation first
-        vars = [var for var in m_dict if 'SpeciesConc' in var]
-        val_ds = xr.Dataset(
-            data_vars={
-                var_name: (['time','lat','lon'], m_dict[var_name][:,:,:]) 
-                for i, var_name in enumerate(vars)
-                },
-            coords= {
-                'time': m_dict['time'],
-                'lat': m_dict['lat'],
-                'lon': m_dict['lon'],
-                }
-            )
-    else:
-        val_ds = None
 
     exp_name = m_dict["exp_name"]
     del m_dict["exp_name"]
@@ -77,41 +61,11 @@ if __name__ == "__main__":
     lat = m_dict["lat"].copy()
     lon = m_dict["lon"].copy()
 
-    print("Normalizing and reshaping data...")
-    norm_stats = np.load(args.norm_stats_file,allow_pickle=True)
-
-    z_mean = norm_stats["z_mean"]
-    z_std = norm_stats["z_std"]
-
-    z_mean_sub = []; z_std_sub = []
-
-    for i, k in enumerate(norm_stats['variables']):
-        if k in m_dict:
-            m_dict[k] = (m_dict[k] - z_mean[i]) / z_std[i]
-            z_mean_sub.append(z_mean[i])
-            z_std_sub.append(z_std[i])
-
-    # make train/test array
     # member variables and time data (time of year, time of day)
     m_array = np.stack( [m_dict[k].data if isinstance(m_dict[k], np.ma.MaskedArray) else m_dict[k] for k in sorted(m_dict.keys()) if k not in DO_NOT_NORMALIZE], axis=0)
     time_array = np.stack( [m_dict[k].data if isinstance(m_dict[k], np.ma.MaskedArray) else m_dict[k] for k in DO_NOT_NORMALIZE[-4:]], axis=0)
 
     split = "val"
-
-    # save off metadata (lat, lon, z_mean, z_std, z_vars)
-    meta_save_dict = {
-            "lat": lat, 
-            "lon": lon,
-            "time_init": time_init,
-            "exp_name": exp_name,
-            "z_mean": z_mean_sub,
-            "z_std": z_std_sub,
-            "z_vars": [k for k in sorted(m_dict.keys()) if k not in DO_NOT_NORMALIZE], 
-            "time_vars": DO_NOT_NORMALIZE[-4:]
-    }
-    with open(Path(args.exp_dir) / f"{exp_name}.{beg_date}-{end_date}.meta.pkl", "wb") as fid:
-        pickle.dump(meta_save_dict, fid, protocol=pickle.HIGHEST_PROTOCOL)
-    print("Saved metadata dict.")
 
     # save train/test array for variables and time data
     split_dir = Path(args.exp_dir) / split
@@ -122,17 +76,44 @@ if __name__ == "__main__":
     print("Saved member data array.")
     with open(split_dir / f"{exp_name}.{beg_date}-{end_date}.time.npy", "wb") as fid:
         np.save(fid, time_array)
-    print("Saved time data array.")
+    print("Saved time data array.")    
+
+    # save off metadata (lat, lon, z_mean, z_std, z_vars)
+    meta_save_dict = {
+            "lat": lat, 
+            "lon": lon,
+            "time_init": time_init,
+            "exp_name": exp_name,
+            "z_vars": [k for k in sorted(m_dict.keys()) if k not in DO_NOT_NORMALIZE], 
+            "time_vars": DO_NOT_NORMALIZE[-4:]
+    }
+
+    with open(Path(args.exp_dir) / f"{exp_name}.{beg_date}-{end_date}.meta.pkl", "wb") as fid:
+        pickle.dump(meta_save_dict, fid, protocol=pickle.HIGHEST_PROTOCOL)
+    print("Saved metadata dict.")
 
 
-    norm_stats['n_timesteps'] = time_array.shape[1]
+    print("Overwrite norm_stats") 
+    norm_stats = np.load(args.norm_stats_file,allow_pickle=True)
+    
+    with open(args.aqcgan_config_file, "r") as file:
+        aqcgan_config = yaml.safe_load(file)
+    
+    # Rearrange norm stats based on features specified in the config file
+    feat_names = aqcgan_config["data"]["feat_names"][args.level]
+    indices = [i for i, var in enumerate(norm_stats['variables']) if var in feat_names]
+    new_norm_stats = {}
+    for key, values in norm_stats.items():
+        if key == "n_timesteps":
+            new_norm_stats[key] = time_array.shape[1]
+        elif key == "boxcox_lambda":
+            new_norm_stats[key] = norm_stats[key]
+        else:
+            if isinstance(values, list):
+                new_norm_stats[key] = [values[i] for i in indices]
+            else:
+                new_norm_stats[key] = values[indices]
+
+    
     with open(args.norm_stats_file, "wb") as fid:
-        pickle.dump(norm_stats, fid, protocol=pickle.HIGHEST_PROTOCOL)
-    print("Overwrite norm_stats n_timesteps.") 
-
-    if ( args.validation_file ):
-        # Write netcdf for validation data
-        val_file = f"{split_dir}/{exp_name}.{beg_date}-{end_date}.val.nc4"
-        if ( val_ds is not None ):
-            val_ds.to_netcdf(val_file)
-        print("Saved validation data file") 
+        pickle.dump(new_norm_stats, fid, protocol=pickle.HIGHEST_PROTOCOL)

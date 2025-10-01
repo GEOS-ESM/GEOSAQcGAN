@@ -28,7 +28,7 @@ source $SRC_DIR/env@/g5_modules
 set PREPROCESS_DATA = 1
 
 # This will delete all previous output
-set CLEAN_PREV_OUTPUT = 0
+set CLEAN_PREV_OUTPUT = 1
 
 # How many passes of the model to be run?
 # Make sure that the time period (end - start) in the 
@@ -50,11 +50,14 @@ mkdir -p ${EXP_DIR}
 #######################################################################
 #                   Set Experiment Run Variables
 #######################################################################
-
 # AQcGAN model directory
 set MODEL_ROOT=/discover/nobackup/projects/gmao/aist-cf/nasa_cgan_model_aug2025_v2.1.1/
 set CHKPT_IDX=150
 set MODEL_DIR="${MODEL_ROOT}/${CHKPT_IDX}"
+
+set CONFIG_FILEPATH="${CUR_DIR}/config/validate/geos_cf_perturb_met_and_emis_gcc_feb_sep_surface_only_time_8ts_nolstm_nolatlon_none_train_7_28_12_17_29_3_1_25_20_19_24_23_22_15_8_26_21_5_9.yaml"
+
+set VERTICAL_LEVEL=72
 
 #######################################################################
 #                   STEP 1: Preprocess Data
@@ -68,7 +71,7 @@ if ( $PREPROCESS_DATA == 1) then
     cp ${MODEL_ROOT}/norm_stats.pkl ${DATA_DIR}                                
 
     # run preprocess script                                                 
-    set PRE_ARGS = "--norm_stats_file $NORM_STATS_FILENAME --exp_dir $DATA_DIR --geos_cf_yaml_file $geos_cf_yaml_fname --validation_file"
+    set PRE_ARGS = "--norm_stats_file $NORM_STATS_FILENAME --exp_dir $DATA_DIR --geos_cf_yaml_file $geos_cf_yaml_fname --aqcgan_config_file $CONFIG_FILEPATH --level $VERTICAL_LEVEL"
 
     echo "python3 -m NASA_AQcGAN.scripts.preprocess_geos_cf $PRE_ARGS"
                                                                   
@@ -108,12 +111,12 @@ ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${DATA_DIR
 ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${DATA_DIR}/val/1_time.npy
 ln -sf ${DATA_DIR}/${exp_name}.${beg_date}-${end_date}.meta.pkl ${DATA_DIR}/meta.pkl
 
-mkdir -p ${DATA_DIR}/train                        
-mkdir -p ${DATA_DIR}/test                         
-ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${DATA_DIR}/train/1.npy
-ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${DATA_DIR}/train/1_time.npy
-ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${DATA_DIR}/test/1.npy
-ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${DATA_DIR}/test/1_time.npy
+#mkdir -p ${DATA_DIR}/train                        
+#mkdir -p ${DATA_DIR}/test                         
+#ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${DATA_DIR}/train/1.npy
+#ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${DATA_DIR}/train/1_time.npy
+#ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.fields.npy ${DATA_DIR}/test/1.npy
+#ln -sf ${DATA_DIR}/val/${exp_name}.${beg_date}-${end_date}.time.npy ${DATA_DIR}/test/1_time.npy
 
 
 if ( ! -e ${DATA_DIR}/val/1.npy || \
@@ -125,10 +128,12 @@ endif
 
 if ( $CLEAN_PREV_OUTPUT == 1 ) then
     rm -f ${EXP_DIR}/aqcgan_predictions/*.nc4
+    rm -f ${EXP_DIR}/*stats*.npz
 endif
 
 while ( $n_passes <= $MAX_N_PASSES )
     set SPLIT  = "val"                           
+    # Get predictions first
     set VAL_ARGS = "$CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --is_pred"
               
     echo "python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS"
@@ -138,9 +143,23 @@ while ( $n_passes <= $MAX_N_PASSES )
     if ($? != 0) then
         echo "Error running the model! Exiting..."
         exit(1)
-    else
-        @ n_passes++
     endif
+
+    # Then get ground truth
+    set VAL_ARGS = "$CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL"
+
+    echo "python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS"
+
+    python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS
+
+    # Post process output
+    set PP_ARGS = "--exp_dir $EXP_DIR --config_filepath $CONFIG_FILEPATH --meta_filepath $META_FILEPATH --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --mode val"
+
+    echo "python3 -m NASA_AQcGAN.scripts.postprocess_predictions $PP_ARGS"
+    python3 -m NASA_AQcGAN.scripts.postprocess_predictions $PP_ARGS
+
+    # Next pass
+    @ n_passes++
 end
 
 # This final step creates a file in exp/aqcgan_predictions called 
