@@ -117,14 +117,16 @@ if ( $RUN_AQCGAN == 1 ) then
             exit(1)
         endif
 
-        # Then get ground truth
-        set VAL_ARGS = "$AQCGAN_CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL"
+        if ( $MODE == "validate" ) then
+            # Then get ground truth
+            set VAL_ARGS = "$AQCGAN_CONFIG_FILEPATH  $CHKPT_IDX ${DATA_DIR} --split $SPLIT --n_passes $n_passes --vertical_level $VERTICAL_LEVEL"
 
-        echo "python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS"
-        python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS
+            echo "python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS"
+            python3 -m NASA_AQcGAN.inference.create_ensemble_predictions $VAL_ARGS
+        endif
 
         # Post process output
-        set PP_ARGS = "--exp_dir $EXP_DIR --exp_name $EXP_NAME --config_filepath $AQCGAN_CONFIG_FILEPATH --meta_filepath ${DATA_DIR}/meta.pkl --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --split $SPLIT --mode validate"
+        set PP_ARGS = "--exp_dir $EXP_DIR --exp_name $EXP_NAME --config_filepath $AQCGAN_CONFIG_FILEPATH --meta_filepath ${DATA_DIR}/meta.pkl --n_passes $n_passes --vertical_level $VERTICAL_LEVEL --split $SPLIT --mode $MODE"
 
         echo "python3 -m NASA_AQcGAN.scripts.postprocess_predictions $PP_ARGS"
         python3 -m NASA_AQcGAN.scripts.postprocess_predictions $PP_ARGS

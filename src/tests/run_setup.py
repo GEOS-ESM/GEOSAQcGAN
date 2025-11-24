@@ -105,17 +105,24 @@ def create_experiment_directory():
 
     experiment_directory.mkdir(parents=True, exist_ok=True)
 
-    # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
-    config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
-    shutil.copy(config_filepath, experiment_directory / "config" / config_filepath.name)
-
     # Copy the AQcGAN YAML configuration files to the experiment directory.
     for root, _, files in os.walk("tests"):
-        for file in [f for f in files if f.endswith(('.yaml', '.yml','.config'))]:
+        for file in [f for f in files if f.endswith(('.yaml', '.yml'))]:
             src = Path(root) / file
             dst = Path(experiment_directory / "config") / src.relative_to("./tests")
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
+
+    # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
+    config_files = [
+    "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml",
+    "etc/NASA_AQcGAN/configs/train_ens_preprocess.config",
+    ]
+
+    for config_file in config_files:
+        src = current_directory.parent / config_file
+        dst = experiment_directory / "config"
+        shutil.copy(src, dst / src.name)
 
     # Get the sponsor code id
 
@@ -154,7 +161,7 @@ def create_experiment_directory():
     dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
     search_replace_in_file(loc_filename_fcst, target_dir, dict_words)
 
-    loc_filename_val = f"run_{system}.j"
+    loc_filename_val = "geos_aqcgan.config"
     target_dir = experiment_directory
     dict_words = {"@EXPNAME": experiment_name,
                   "@EXPDIR": str(experiment_directory),
@@ -162,15 +169,18 @@ def create_experiment_directory():
                   "@GROUPID": my_group}
     search_replace_in_file(loc_filename_val, target_dir, dict_words)
 
+    # Copy run scripts
+    for src in glob.glob("*.j"):
+        shutil.copy(src, experiment_directory)
+
     print()
     print("-"*70)
     print(f"The experiment directory was created: \n\n\t {experiment_directory}")
     print()
-    print(f"Go to the folder and if necessary edit the file {loc_filename_fcst} ")
-    print(f"or {loc_filename_val}, depending on your run mode.")
+    print(f"Go to the folder edit the geos_aqcgan.config and other config files as needed")
     print()
-    print("From the experiment directory, issue the command: ")
-    print(f"   sbatch {loc_filename_fcst} or sbatch {loc_filename_val}")
+    print("Then from the experiment directory, issue the command: ")
+    print(f"  sbatch run_{system}.j geos_aqcgan.config")
     print("-"*70)
     print()
 

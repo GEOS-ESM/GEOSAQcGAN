@@ -33,10 +33,10 @@ foreach element ($members)
 end
 
 if ($SPLIT == "val") then
-    set val_members = ($members1[1-$#members1-1])
+    set val_members = ($members1)
     set test_members = 99
 else
-    set test_members = ($members1[1-$#members1-1])
+    set test_members = ($members1)
     set val_members = 99
 endif
 

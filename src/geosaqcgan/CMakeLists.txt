@@ -12,6 +12,7 @@
   install(DIRECTORY shared DESTINATION lib/Python/NASA_AQcGAN)
   install(DIRECTORY configs DESTINATION etc/NASA_AQcGAN)
   install(FILES geos_dataset.py geosaqcgantrainer.py DESTINATION lib/Python/NASA_AQcGAN/)
+  install(FILES configs/geos_aqcgan.config DESTINATION bin)
 
 # Python executables
 # ------------------  

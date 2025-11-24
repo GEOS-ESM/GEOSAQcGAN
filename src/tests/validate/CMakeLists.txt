@@ -2,16 +2,12 @@ esma_set_this()
 
 # Install test
 # ---------------------
-  file(GLOB files *yaml)
+  file(GLOB files *yaml *config)
   install(FILES ${files} DESTINATION bin/tests/${this})
 
   file(GLOB files *sh)
   install(PROGRAMS ${files} DESTINATION bin/tests/${this})
 
-  foreach (valfile run_discover.j validation_run_prism.j)
-   install (
-      PROGRAMS ${valfile}
-      DESTINATION bin
-      )
-  endforeach ()
+  file(GLOB files *j)
+  install(PROGRAMS ${files} DESTINATION bin)
 
