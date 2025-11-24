@@ -37,7 +37,7 @@ def print_message():
     """
     print(mssg)
 
-def search_reaplace_in_file(loc_filename: str, 
+def search_replace_in_file(loc_filename: str, 
                             target_dir: Path, 
                             dict_words: dict) -> None:
     """
@@ -107,11 +107,11 @@ def create_experiment_directory():
 
     # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
     config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
-    shutil.copy(config_filepath, experiment_directory / config_filepath.name)
+    shutil.copy(config_filepath, experiment_directory / "config" / config_filepath.name)
 
     # Copy the AQcGAN YAML configuration files to the experiment directory.
     for root, _, files in os.walk("tests"):
-        for file in [f for f in files if f.endswith(('.yaml', '.yml'))]:
+        for file in [f for f in files if f.endswith(('.yaml', '.yml','.config'))]:
             src = Path(root) / file
             dst = Path(experiment_directory / "config") / src.relative_to("./tests")
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -152,12 +152,15 @@ def create_experiment_directory():
     loc_filename_fcst = f"forecast_run_{system}.j"
     target_dir = experiment_directory
     dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
-    search_reaplace_in_file(loc_filename_fcst, target_dir, dict_words)
+    search_replace_in_file(loc_filename_fcst, target_dir, dict_words)
 
-    loc_filename_val = f"validation_run_{system}.j"
+    loc_filename_val = f"run_{system}.j"
     target_dir = experiment_directory
-    dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
-    search_reaplace_in_file(loc_filename_val, target_dir, dict_words)
+    dict_words = {"@EXPNAME": experiment_name,
+                  "@EXPDIR": str(experiment_directory),
+                  "@SRCDIR": str(source_directory), 
+                  "@GROUPID": my_group}
+    search_replace_in_file(loc_filename_val, target_dir, dict_words)
 
     print()
     print("-"*70)
