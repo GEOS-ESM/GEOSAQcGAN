@@ -118,10 +118,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # open predictions npz file
-    pred_npz_file = f"{args.exp_dir}/val_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz"
+    pred_npz_file = f"{args.exp_dir}/{args.split}_ens_pred_stats_days{args.n_passes}_level{args.vertical_level}.npz"
     predictions_dict = np.load(pred_npz_file)
 
-    predictions_mean = predictions_dict[f"ens_mean_pred_val"]
+    predictions_mean = predictions_dict[f"ens_mean_pred_{args.split}"]
 
     # get meta data
     meta_data = read_pickle_file(args.meta_filepath)    
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # Get some config values
     exp_name = args.exp_name
-    times = np.array(meta_data['date_time'], dtype='datetime64')
+    times = np.array(meta_data['time'], dtype='datetime64')
     n_timesteps = len(times)
     window_size = config["data"]["n_frames"]*config["data"]["step_size"]
     time_span   = n_timesteps - window_size*(args.n_passes + 1) + 1
