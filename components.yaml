@@ -29,5 +29,4 @@ NASA-AQcGAN:
   local: ./src/Shared/JHU_Shared/NASA-AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
   develop: main
-  branch: vshah_change_location_of_time_coord
-
+  tag: vshah5_updates_for_v2.1.1
