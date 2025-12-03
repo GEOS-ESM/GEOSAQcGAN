@@ -54,7 +54,15 @@ data:
     - 1
 
   test_member_idxs:
-    - 1
+    - 14
+    - 30
+    - 13
+    - 4
+    - 32
+    - 10
+    - 2
+    - 6
+    - 27
 
   transformations:
     CLDTT: "standardization"
