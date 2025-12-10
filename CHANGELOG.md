@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A postprocessing script to take AQcGAN output and write netcdf files
 - A preprocessing script to use the training ensemble (test) members for validation
+- Notebook to plot error stats
 
 ### Changed
 - Consolidate run scripts to a single file that can run either in validation or forecast mode.
