@@ -34,3 +34,6 @@ parallel_build.o*
 /src/Shared/@NASA-AQcGAN
 /runs*
 *vscode*
+*.png*
+/workbooks
+/old
