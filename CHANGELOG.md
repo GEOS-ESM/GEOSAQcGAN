@@ -20,11 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the preprocessing scripts to be consistent with v2.1.1 release (for example, no normalization in preprocessing)
 
 ### Removed
+- Cleaned up files that are no longer used
 
 ### Deprecated
 
 ### TODO
-- remove unused files
+- Check run script for Prism
 
 ## [v1.1.0] 08-20-2025
 ### Added
