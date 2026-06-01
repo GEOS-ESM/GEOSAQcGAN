@@ -45,7 +45,7 @@ data:
       - SpeciesConc_NO2_72
       - SpeciesConc_O3_72
 
-  data_dir: @EXPDIR/data
+  data_dir: EXPDIR/data
 
   train_member_idxs:
     - 1
@@ -99,4 +99,4 @@ diffusion:
 
 device: 0
 
-chkpt_dir: @EXPDIR/exp
+chkpt_dir: EXPDIR/exp

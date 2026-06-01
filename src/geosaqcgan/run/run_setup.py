@@ -169,7 +169,7 @@ def create_experiment_directory():
             rel_path = src_file_path.relative_to(config_src_dir)
             dst_file_path = config_dst_dir / rel_path
             dst_file_path.parent.mkdir(parents=True, exist_ok=True)
-            dict_words = {"@EXPDIR": str(experiment_directory)}
+            dict_words = {"EXPDIR": str(experiment_directory)}
             print(src_file_path,dst_file_path.parent)
             search_replace_in_file(src_file_path, dst_file_path.parent, dict_words)
 
