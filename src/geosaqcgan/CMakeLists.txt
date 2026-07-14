@@ -1,18 +1,12 @@
 #
 # Cmake rules for geosacgan
 #
+add_subdirectory (run)
 
-
-# Install 'forecast' package
+# Install geosaqcgan
 # -----------------------
-  file(GLOB inference_files inference/*.py)
-  file(GLOB scripts_files scripts/*.py)
-  install(FILES ${inference_files} DESTINATION lib/Python/NASA_AQcGAN/inference)
-  install(FILES ${scripts_files} DESTINATION lib/Python/NASA_AQcGAN/scripts)
+  install(DIRECTORY preprocess/ DESTINATION lib/Python/NASA_AQcGAN/scripts FILES_MATCHING PATTERN "*.py")
+  install(DIRECTORY postprocess/ DESTINATION lib/Python/NASA_AQcGAN/scripts FILES_MATCHING PATTERN "*.py")
   install(DIRECTORY shared DESTINATION lib/Python/NASA_AQcGAN)
-  install(DIRECTORY configs DESTINATION etc/NASA_AQcGAN)
-  install(FILES geos_dataset.py geosaqcgantrainer.py DESTINATION lib/Python/NASA_AQcGAN/)
+  install(DIRECTORY notebooks DESTINATION etc/GEOS_AQcGAN)
 
-# Python executables
-# ------------------  
-#  install(PROGRAMS forecast.py DESTINATION bin)

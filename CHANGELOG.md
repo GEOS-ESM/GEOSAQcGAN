@@ -7,14 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- A postprocessing script to take AQcGAN output and write netcdf files
+- A preprocessing script to use the training ensemble (test) members for validation
+- Notebook to plot error stats
 
 ### Changed
+- Consolidate run scripts to a single file that can run either in validation or forecast mode.
+- Move run configs into separate files
+- Simplified directory structure
 
 ### Fixes
+- Fixed the preprocessing scripts to be consistent with v2.1.1 release (for example, no normalization in preprocessing)
 
 ### Removed
+- Cleaned up files that are no longer used
 
 ### Deprecated
+
+### TODO
+- Check run script for Prism
 
 ## [v1.1.0] 08-20-2025
 ### Added

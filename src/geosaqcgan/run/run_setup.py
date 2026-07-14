@@ -32,12 +32,12 @@ def print_message():
         - the group id (group_id), i.e., the NCCS sponsor code to be used in SLURM.
  
     It will then create an experiment directory that has a self-contained and ready
-    to use SLURM script forecast_run.j.
+    to use run scripts
     ---------------------------------------------------------------------------------
     """
     print(mssg)
 
-def search_reaplace_in_file(loc_filename: str, 
+def search_replace_in_file(template_filename: Path, 
                             target_dir: Path, 
                             dict_words: dict) -> None:
     """
@@ -46,16 +46,16 @@ def search_reaplace_in_file(loc_filename: str,
 
     Parameters
     ----------
-    loc_filename : str
-       Local template file name.
+    template_filename : Path
+       Template file path.
     target_dir : Path
        Target directory where the new file will be created.
     dict_words : dict
        Dictionary where the keys are old words and the corresponding values
        are the new words.
     """
-    new_filename = target_dir / loc_filename
-    shutil.copy(loc_filename, new_filename)
+    new_filename = target_dir / template_filename.name
+    shutil.copy(template_filename, new_filename)
 
     try:
         with open(new_filename, 'r') as fid:
@@ -105,18 +105,6 @@ def create_experiment_directory():
 
     experiment_directory.mkdir(parents=True, exist_ok=True)
 
-    # Copy the GEOS CF preprocessing YAML configuration file to the experiment directory.
-    config_filepath = current_directory.parent / "etc/NASA_AQcGAN/configs/geos_cf_preproc_collections.yaml"
-    shutil.copy(config_filepath, experiment_directory / config_filepath.name)
-
-    # Copy the AQcGAN YAML configuration files to the experiment directory.
-    for root, _, files in os.walk("tests"):
-        for file in [f for f in files if f.endswith(('.yaml', '.yml'))]:
-            src = Path(root) / file
-            dst = Path(experiment_directory / "config") / src.relative_to("./tests")
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst)
-
     # Get the sponsor code id
 
     result = subprocess.run(["groups"], shell=True, capture_output=True, text=True)
@@ -125,11 +113,11 @@ def create_experiment_directory():
 
     print(f"The list of available group ids is: \n\n\t {result.stdout.strip()}")
     print()
-    my_group = input(f"Provide the group id do you want to use (default: {groups[0]}): ")
+    my_group = input(f"Provide the group id do you want to use (default: s2825): ")
     my_group = my_group.strip()
 
     if not my_group:
-        my_group = groups[0]
+        my_group = 's2825'
 
     print()
     print(f"Your group is is: {my_group}")
@@ -140,34 +128,65 @@ def create_experiment_directory():
         print(f"The group {groups[0]} will be used.")
         print(f"You can change the group id in the SLURM script available in the experiment directory")
         print()
+ 
+    # Copy other scripts
+    script_src_dir = current_directory.parent / "etc/GEOS_AQcGAN/run/scripts"
 
-    print()
-    dsystem = 'discover'
-    system = input(f"Provide the system you are running on (options: discover, prism) (default: {dsystem}): ")
-    system = system.strip()
-    
-    if not system:
-        system = dsystem
+    for file in script_src_dir.glob('*'):
+        if file.name.startswith("run_"):
+            dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
+            print(file,experiment_directory)
+            search_replace_in_file(file, experiment_directory, dict_words)
+        else:
+            shutil.copy(file, experiment_directory)
 
-    loc_filename_fcst = f"forecast_run_{system}.j"
-    target_dir = experiment_directory
-    dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
-    search_reaplace_in_file(loc_filename_fcst, target_dir, dict_words)
 
-    loc_filename_val = f"validation_run_{system}.j"
-    target_dir = experiment_directory
-    dict_words = {"@SRCDIR": str(source_directory), "@GROUPID": my_group}
-    search_reaplace_in_file(loc_filename_val, target_dir, dict_words)
+    # Copy the GEOS AQcGAN run config files to the experiment directory.
+    config_src_dir = current_directory.parent / "etc/GEOS_AQcGAN/run/configs"
+    config_dst_dir = experiment_directory / "config"
+    config_dst_dir.mkdir(parents=True, exist_ok=True)
+
+    for config_file in config_src_dir.glob('*'):
+        if config_file.is_file():
+            if config_file.name == "run.config":
+                dict_words = {"@EXPNAME": experiment_name,
+                              "@EXPDIR": str(experiment_directory),
+                              "@SRCDIR": str(source_directory), 
+                              "@GROUPID": my_group
+                              }
+                search_replace_in_file(config_file, experiment_directory, dict_words)
+            else:
+                shutil.copy(config_file, config_dst_dir)
+
+    # Copy the GEOS AQcGAN run config files to the experiment directory.
+    config_src_dir = current_directory.parent / "etc/GEOS_AQcGAN/run/configs/AQcGAN"
+    config_dst_dir = experiment_directory / "config"
+    config_dst_dir.mkdir(parents=True, exist_ok=True)
+
+    for root, _ , files in os.walk(config_src_dir):
+        for file in files:
+            src_file_path = Path(root) / file
+            rel_path = src_file_path.relative_to(config_src_dir)
+            dst_file_path = config_dst_dir / rel_path
+            dst_file_path.parent.mkdir(parents=True, exist_ok=True)
+            dict_words = {"EXPDIR": str(experiment_directory)}
+            print(src_file_path,dst_file_path.parent)
+            search_replace_in_file(src_file_path, dst_file_path.parent, dict_words)
+
+    # Copy the NASA AQcGAN config files to the run folder
+    config_src_dir = current_directory.parent / "etc/NASA_AQcGAN/configs"
+    config_dst_dir = experiment_directory / "config" / "NASA_AQcGAN" / "configs_all"
+    shutil.copytree(config_src_dir, config_dst_dir, dirs_exist_ok=True)
+
 
     print()
     print("-"*70)
     print(f"The experiment directory was created: \n\n\t {experiment_directory}")
     print()
-    print(f"Go to the folder and if necessary edit the file {loc_filename_fcst} ")
-    print(f"or {loc_filename_val}, depending on your run mode.")
+    print(f"Go to the folder, edit the run.config and other config files as needed")
     print()
-    print("From the experiment directory, issue the command: ")
-    print(f"   sbatch {loc_filename_fcst} or sbatch {loc_filename_val}")
+    print("Then from the experiment directory, issue the command: ")
+    print("  sbatch run_{system}.j run.config")
     print("-"*70)
     print()
 
