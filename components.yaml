@@ -23,10 +23,10 @@ AQcGAN:
   local: ./src/Shared/JHU_Shared/AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/AQcGAN
   develop: main
-  tag: v2.1.1
+  branch: release_2.2.0
 
 NASA-AQcGAN:
   local: ./src/Shared/JHU_Shared/NASA-AQcGAN@
   remote: git@github.com:JHUAPL-ClearSKAIs/NASA-AQcGAN
   develop: main
-  tag: release_2.1.1+GEOS_AQcGAN
+  branch: GEOS-AQcGAN/release_2.2.0

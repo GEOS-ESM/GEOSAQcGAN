@@ -128,3 +128,86 @@ Please check out our [contributing guidelines](CONTRIBUTING.md).
 All files are currently licensed under the Apache-2.0 license, see [`LICENSE`](LICENSE).
 
 Previously, the code was licensed under the [NASA Open Source Agreement, Version 1.3](LICENSE-NOSA).
+
+
+## AQcGAN v2.2.0 Aerosol Workflow
+
+The AQcGAN v2.2.0 aerosol workflow consists of three stages:
+
+1. Data preprocessing
+2. AQcGAN inference
+3. Evaluation
+
+### Preprocessing and Inference
+
+The preprocessing and inference workflows are provided by the **NASA-AQcGAN**
+repository, which is checked out automatically as part of the `mepo`
+workspace.
+
+To simplify evaluation and ensure reproducibility, the preprocessing and
+inference steps have already been completed for the AQcGAN v2.2.0 release.
+
+The preprocessed datasets, trained model checkpoints, AQcGAN prediction files,
+truth datasets, plotting metadata, and generated evaluation products are
+available in the shared directory
+
+```text
+/gpfsm/dnb06/projects/p271/aqcgan_products/v2_2_0/
+```
+
+This directory includes
+
+```text
+preprocessed_data/                         # Preprocessed input datasets
+chkpts/                                   # Trained AQcGAN model checkpoints
+
+test_ens_pred_stats_days{1-10}_chkpt100.npz
+test_ens_stats_days{1-10}.npz             # Prediction and truth datasets
+
+plot_metadata/                            # Precomputed plotting metadata
+
+leadmean_global_and_regional_timeseries/  # Lead-time regional diagnostics
+leadmean_global_maps/                     # Lead-time global diagnostics
+startdate_global_and_regional_timeseries/ # Single-start regional diagnostics
+startdate_global_maps/                    # Single-start global diagnostics
+```
+
+Users who wish to generate new datasets should follow the preprocessing and
+inference documentation in the **NASA-AQcGAN** repository. Most users can
+proceed directly to the evaluation workflows described below.
+
+### Evaluation
+
+Before running any of the evaluation and plotting workflows, load the GEOS
+Python environment:
+
+```bash
+module load python/GEOSpyD/24.11.3-0/3.12
+```
+
+The plotting scripts use the Basemap package, which is installed in the shared
+`p271` Python package directory. Add this directory to your `PYTHONPATH`:
+
+```bash
+export PYTHONPATH="${PYTHONPATH:-}:/gpfsm/dnb06/projects/p271/python_packages"
+```
+
+The plotting scripts are configured to use Matplotlib's non-interactive `Agg`
+backend, making them compatible with Discover login and compute nodes. No
+additional environment variables are required.
+
+
+The evaluation workflows are provided in
+
+```text
+src/geosaqcgan/evaluation/v2_2_0/
+```
+
+The evaluation package includes:
+
+- Lead-time mean global and regional time-series diagnostics
+- Lead-time mean global maps
+- Start-date global and regional time-series diagnostics
+- Start-date global maps
+
+Each workflow contains its own `README.md` with detailed usage instructions.
