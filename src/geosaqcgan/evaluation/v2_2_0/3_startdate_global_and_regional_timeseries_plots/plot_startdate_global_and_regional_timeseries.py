@@ -37,6 +37,7 @@ matplotlib.use("Agg")  # Headless backend for Discover/batch nodes
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 BASE = Path("/gpfsm/dnb06/projects/p271/aqcgan_products/v2_2_0")
